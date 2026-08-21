@@ -1,5 +1,5 @@
 """
-Device Model - Represents network devices discovered on the local network
+Device Model
 """
 
 from datetime import datetime, timezone
@@ -17,6 +17,7 @@ class Device(db.Model):
     last_seen = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     status = db.Column(db.String(20), default='ONLINE')
     
+    # Relationships
     port_scans = db.relationship('PortScan', backref='device', lazy='dynamic', cascade='all, delete-orphan')
     alerts = db.relationship('Alert', backref='device', lazy='dynamic', cascade='all, delete-orphan')
     

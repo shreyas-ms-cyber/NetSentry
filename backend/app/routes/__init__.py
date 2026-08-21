@@ -5,22 +5,18 @@ API Routes Blueprint
 from flask import Blueprint, jsonify, request
 from app.extensions import db
 from app.models import Device, PortScan, TrafficStat, Alert
-from datetime import datetime, timezone
 
 api_bp = Blueprint('api', __name__)
 
-# Import all route modules
+# Import route modules
 from app.routes import ingest
 
-# Health check endpoint
 @api_bp.route('/health')
 def health():
     return jsonify({'status': 'ok', 'service': 'NetSentry API'})
 
-# Devices endpoints
 @api_bp.route('/devices')
 def get_devices():
-    """Get all devices"""
     devices = Device.query.order_by(Device.last_seen.desc()).all()
     return jsonify({
         'devices': [d.to_dict() for d in devices],
@@ -29,13 +25,11 @@ def get_devices():
 
 @api_bp.route('/devices/<int:device_id>')
 def get_device(device_id):
-    """Get device by ID"""
     device = Device.query.get_or_404(device_id)
     return jsonify(device.to_dict())
 
 @api_bp.route('/devices/<int:device_id>/ports')
 def get_device_ports(device_id):
-    """Get ports for a device"""
     device = Device.query.get_or_404(device_id)
     ports = device.port_scans.order_by(PortScan.scanned_at.desc()).all()
     return jsonify({
@@ -43,10 +37,8 @@ def get_device_ports(device_id):
         'ports': [p.to_dict() for p in ports]
     })
 
-# Ports endpoints
 @api_bp.route('/ports')
 def get_ports():
-    """Get all ports, optionally filtered"""
     status = request.args.get('status')
     protocol = request.args.get('protocol')
     port = request.args.get('port')
@@ -65,10 +57,8 @@ def get_ports():
         'count': len(ports)
     })
 
-# Traffic endpoints
 @api_bp.route('/traffic')
 def get_traffic():
-    """Get traffic statistics"""
     limit = request.args.get('limit', 100, type=int)
     stats = TrafficStat.query.order_by(TrafficStat.timestamp.desc()).limit(limit).all()
     return jsonify({
@@ -76,10 +66,8 @@ def get_traffic():
         'count': len(stats)
     })
 
-# Alerts endpoints
 @api_bp.route('/alerts')
 def get_alerts():
-    """Get alerts, optionally filtered"""
     acknowledged = request.args.get('acknowledged', 'false').lower() == 'true'
     severity = request.args.get('severity')
     
@@ -95,10 +83,8 @@ def get_alerts():
         'count': len(alerts)
     })
 
-# Alert acknowledgment endpoint
 @api_bp.route('/alerts/<int:alert_id>/acknowledge', methods=['POST'])
 def acknowledge_alert(alert_id):
-    """Acknowledge an alert"""
     alert = Alert.query.get_or_404(alert_id)
     alert.acknowledged = True
     db.session.commit()
@@ -108,10 +94,8 @@ def acknowledge_alert(alert_id):
         'alert': alert.to_dict()
     })
 
-# Dashboard summary endpoint
 @api_bp.route('/dashboard/summary')
 def dashboard_summary():
-    """Get dashboard summary statistics"""
     total_devices = Device.query.count()
     online_devices = Device.query.filter_by(status='ONLINE').count()
     offline_devices = Device.query.filter_by(status='OFFLINE').count()
