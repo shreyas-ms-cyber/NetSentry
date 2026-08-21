@@ -38,6 +38,11 @@ def create_app():
     # Initialize extensions with app
     db.init_app(app)
     
+    # Create tables
+    with app.app_context():
+        db.create_all()
+        print("✅ Database tables created successfully")
+    
     # Import and register blueprints
     from app.routes import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
