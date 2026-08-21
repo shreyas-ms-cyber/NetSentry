@@ -5,20 +5,25 @@ NetSentry Backend Application
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-
-# Import db from extensions (the single instance)
-from app.extensions import db
 
 # Load environment variables
 load_dotenv()
+
+# Initialize extensions
+db = SQLAlchemy()
 
 def create_app():
     """Application factory pattern"""
     app = Flask(__name__)
     
-    # Configuration - Use SQLite by default
-    database_url = os.environ.get('DATABASE_URL', 'sqlite:///netsentry.db')
+    # Configuration - Use SQLite if PostgreSQL not available
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        database_url = 'sqlite:///netsentry.db'
+        print("⚠️  DATABASE_URL not set, using SQLite")
+    
     print(f"📊 Using database: {database_url}")
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
@@ -31,19 +36,19 @@ def create_app():
         }
     
     # CORS
-    cors_origin = os.environ.get('CORS_ORIGIN', 'http://localhost:5173')
-    CORS(app, origins=[cors_origin])
+    cors_origin = os.environ.get('CORS_ORIGIN', '*')
+    CORS(app, origins=[cors_origin] if cors_origin != '*' else '*')
     
-    # Initialize db with app
+    # Initialize extensions with app
     db.init_app(app)
-    
-    # Import models (after db is initialized)
-    from app.models import Device, PortScan, TrafficStat, Alert
     
     # Create tables
     with app.app_context():
         db.create_all()
         print("✅ Database tables created successfully")
+    
+    # Import models
+    from app.models import Device, PortScan, TrafficStat, Alert
     
     # Import and register blueprints
     from app.routes import api_bp
@@ -59,8 +64,7 @@ def create_app():
         return jsonify({
             'service': 'NetSentry Backend',
             'version': '1.0.0',
-            'status': 'running',
-            'endpoints': ['/health', '/api/health', '/api/devices', '/api/ports', '/api/traffic', '/api/alerts']
+            'status': 'running'
         })
     
     return app
