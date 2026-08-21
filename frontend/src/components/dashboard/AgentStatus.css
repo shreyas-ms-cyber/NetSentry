@@ -1,0 +1,115 @@
+.agent-status-card {
+  background: rgba(16, 26, 46, 0.70);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 16px 20px;
+  transition: all 0.2s ease;
+}
+
+.agent-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.agent-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-pulse.online {
+  background: #00D26A;
+  animation: pulse 2s infinite;
+}
+
+.status-pulse.offline {
+  background: #FF3B5C;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.agent-status-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.agent-status-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.agent-status-text.online {
+  color: #00D26A;
+}
+
+.agent-status-text.offline {
+  color: #FF3B5C;
+}
+
+.agent-status-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.agent-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.agent-detail-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.agent-detail-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.agent-status-offline-msg {
+  padding: 12px 0 4px 0;
+}
+
+.agent-status-offline-msg p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .agent-status-details {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  
+  .agent-status-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

@@ -1,0 +1,45 @@
+.top-talkers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.talker-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.talker-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.talker-ip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.talker-traffic {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.talker-bar-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.talker-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00E5FF, #00D26A);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}

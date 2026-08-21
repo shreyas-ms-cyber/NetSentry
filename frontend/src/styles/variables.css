@@ -1,11 +1,61 @@
 :root {
-  --primary-bg: #0B1120;
-  --primary-accent: #00E5FF;
+  /* Primary Colors */
+  --bg-primary: #060B14;
+  --bg-secondary: #080D18;
+  --bg-surface: #0B1120;
+  --bg-card: rgba(13, 22, 40, 0.85);
+  --bg-card-hover: rgba(20, 34, 60, 0.9);
+  
+  /* Accent Colors */
+  --accent-cyan: #00E5FF;
+  --accent-cyan-dim: rgba(0, 229, 255, 0.12);
+  --accent-cyan-glow: rgba(0, 229, 255, 0.08);
+  
+  /* Status Colors */
   --success: #00D26A;
+  --success-dim: rgba(0, 210, 106, 0.12);
   --warning: #FFC857;
+  --warning-dim: rgba(255, 200, 87, 0.12);
   --danger: #FF3B5C;
-  --surface-dark: #0D1526;
-  --surface-mid: #101A2E;
-  --surface-light: #111C30;
-  --surface-card: rgba(16, 26, 46, 0.70);
+  --danger-dim: rgba(255, 59, 92, 0.12);
+  --info: #4DA3FF;
+  --info-dim: rgba(77, 163, 255, 0.12);
+  
+  /* Neutrals */
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.75);
+  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-dim: rgba(255, 255, 255, 0.2);
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  
+  /* Typography */
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  
+  /* Glass */
+  --glass-bg: rgba(13, 22, 40, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-blur: 16px;
+  
+  /* Shadows */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 40px rgba(0, 229, 255, 0.04);
 }

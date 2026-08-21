@@ -1,0 +1,360 @@
+.device-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 4px 0;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.25);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.back-link:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Detail Header */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.detail-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.detail-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.detail-status.online {
+  color: var(--success);
+}
+
+.detail-status.offline {
+  color: var(--danger);
+}
+
+.detail-status .status-dot {
+  width: 8px;
+  height: 8px;
+}
+
+.detail-vendor {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-refresh-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-refresh-detail:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+/* Info Grid */
+.detail-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.15);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.info-value {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.info-value.mono {
+  font-family: var(--font-mono);
+}
+
+.port-count-large {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--warning);
+}
+
+/* Ports Section */
+.detail-ports-section {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+}
+
+.ports-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ports-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.ports-stats {
+  display: flex;
+  gap: 14px;
+}
+
+.port-stat {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.port-stat.open {
+  color: var(--warning);
+}
+
+.port-stat.closed {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.port-stat.filtered {
+  color: rgba(255, 255, 255, 0.1);
+}
+
+/* Ports Grid */
+.ports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.port-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.port-card:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.port-number {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.port-protocol {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.port-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.port-badge.open {
+  background: rgba(255, 200, 87, 0.1);
+  color: var(--warning);
+}
+
+.port-badge.closed {
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.port-badge.filtered {
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.08);
+}
+
+.port-time {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.1);
+}
+
+/* Empty Ports */
+.ports-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.ports-empty p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.2);
+  margin: 0 0 4px 0;
+}
+
+.ports-empty span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.08);
+}
+
+/* Skeleton */
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.skeleton-header {
+  height: 40px;
+  width: 60%;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-info {
+  height: 120px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-ports {
+  height: 200px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Detail Empty */
+.detail-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.detail-empty svg {
+  font-size: 40px;
+  color: rgba(255, 255, 255, 0.05);
+  margin-bottom: 16px;
+}
+
+.detail-empty p {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.2);
+  margin-bottom: 8px;
+}
+
+.detail-empty a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .detail-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .detail-title {
+    font-size: 22px;
+  }
+  .detail-info-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+  .ports-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  .ports-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .detail-ports-section {
+    padding: 16px;
+  }
+  .ports-stats {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ports-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .detail-header {
+    flex-direction: column;
+  }
+}

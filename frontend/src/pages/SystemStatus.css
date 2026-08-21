@@ -1,0 +1,163 @@
+.system-status-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 4px 0;
+}
+
+.system-status-header {
+  margin-bottom: 4px;
+}
+
+.system-status-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.system-status-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 4px 0 0 0;
+}
+
+.system-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.status-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  transition: all 0.2s ease;
+}
+
+.status-card:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.status-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.status-card-icon {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.status-card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.status-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 26px;
+}
+
+.system-status-badge {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-operational {
+  color: var(--success);
+}
+
+.status-degraded {
+  color: var(--warning);
+}
+
+.status-offline {
+  color: var(--danger);
+}
+
+.status-card-latency {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.2);
+  font-family: var(--font-mono);
+}
+
+.system-status-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.status-legend {
+  display: flex;
+  gap: 20px;
+}
+
+.legend-item {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.legend-item.operational {
+  color: var(--success);
+}
+
+.legend-item.degraded {
+  color: var(--warning);
+}
+
+.legend-item.offline {
+  color: var(--danger);
+}
+
+.status-updated {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.15);
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 1024px) {
+  .system-status-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .system-status-title {
+    font-size: 20px;
+  }
+  .system-status-grid {
+    grid-template-columns: 1fr;
+  }
+  .status-card-body {
+    padding-left: 0;
+  }
+  .status-legend {
+    gap: 12px;
+  }
+  .system-status-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .status-card {
+    padding: 14px 16px;
+  }
+  .status-card-name {
+    font-size: 12px;
+  }
+}

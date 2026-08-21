@@ -1,0 +1,455 @@
+.ports-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px 0;
+}
+
+/* Header */
+.ports-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.ports-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.ports-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 4px 0 0 0;
+}
+
+.btn-refresh-ports {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-refresh-ports:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+/* Stats Summary */
+.ports-stats-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.port-stat-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: #fff;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 0 2px 0 0;
+}
+
+.stat-bar.open {
+  background: var(--warning);
+}
+
+.stat-bar.closed {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.stat-bar.filtered {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.stat-bar.total {
+  background: var(--accent-cyan);
+  opacity: 0.3;
+}
+
+/* Controls */
+.ports-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  align-items: center;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 160px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 0 12px;
+  transition: all 0.2s ease;
+}
+
+.search-wrapper:focus-within {
+  border-color: rgba(0, 229, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.search-wrapper .search-icon {
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 13px;
+}
+
+.search-input-ports {
+  background: none;
+  border: none;
+  padding: 7px 10px;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+}
+
+.search-input-ports::placeholder {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.filter-group {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 11px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.filter-btn.active {
+  border-color: rgba(0, 229, 255, 0.15);
+  background: rgba(0, 229, 255, 0.06);
+  color: var(--accent-cyan);
+}
+
+.filter-btn.open.active {
+  border-color: rgba(255, 200, 87, 0.2);
+  background: rgba(255, 200, 87, 0.06);
+  color: var(--warning);
+}
+
+.filter-btn.closed.active {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.filter-btn.filtered.active {
+  border-color: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.port-controls-right {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.protocol-select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  outline: none;
+}
+
+.protocol-select:focus {
+  border-color: rgba(0, 229, 255, 0.2);
+}
+
+.port-filter-input {
+  width: 70px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  font-family: var(--font-mono);
+  outline: none;
+}
+
+.port-filter-input:focus {
+  border-color: rgba(0, 229, 255, 0.2);
+}
+
+.port-filter-input::placeholder {
+  color: rgba(255, 255, 255, 0.1);
+}
+
+/* Ports Table */
+.ports-table-wrapper {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.ports-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.ports-table thead {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ports-table th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.ports-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.port-row {
+  transition: background 0.15s ease;
+}
+
+.port-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.port-number {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.port-protocol-cell {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+}
+
+.port-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.port-status-badge.open {
+  background: rgba(255, 200, 87, 0.08);
+  color: var(--warning);
+}
+
+.port-status-badge.closed {
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.port-status-badge.filtered {
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.08);
+}
+
+.btn-view-device {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.15);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-view-device:hover {
+  background: rgba(0, 229, 255, 0.06);
+  border-color: rgba(0, 229, 255, 0.1);
+  color: var(--accent-cyan);
+}
+
+/* Empty State */
+.ports-empty-state {
+  text-align: center;
+  padding: 40px 20px !important;
+}
+
+.ports-empty-state .empty-icon {
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.04);
+  margin-bottom: 10px;
+}
+
+.ports-empty-state p {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.2);
+  margin: 0 0 4px 0;
+}
+
+.ports-empty-state span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.08);
+}
+
+/* Skeleton */
+.ports-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.port-row-skeleton {
+  display: grid;
+  grid-template-columns: 80px 60px 80px 1fr 1fr 1fr 60px;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.skeleton-line {
+  height: 14px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 25%, rgba(255, 255, 255, 0.04) 50%, rgba(255, 255, 255, 0.02) 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .ports-stats-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .ports-title {
+    font-size: 20px;
+  }
+  .ports-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-wrapper {
+    min-width: auto;
+  }
+  .port-controls-right {
+    margin-left: 0;
+  }
+  .ports-table-wrapper {
+    overflow-x: auto;
+  }
+  .ports-table {
+    font-size: 12px;
+    min-width: 600px;
+  }
+  .ports-table th,
+  .ports-table td {
+    padding: 8px 12px;
+  }
+  .port-number {
+    font-size: 14px;
+  }
+  .ports-header {
+    flex-direction: column;
+  }
+  .ports-stats-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .ports-stats-summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .port-stat-card {
+    padding: 10px 14px;
+  }
+  .stat-number {
+    font-size: 18px;
+  }
+}
