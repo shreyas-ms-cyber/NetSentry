@@ -18,7 +18,7 @@ def create_app():
     """Application factory pattern"""
     app = Flask(__name__)
     
-    # Configuration - Use SQLite if PostgreSQL not available
+    # Configuration - Use PostgreSQL or SQLite fallback
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:
         database_url = 'sqlite:///netsentry.db'
