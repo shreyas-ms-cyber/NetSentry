@@ -1,7 +1,3 @@
-"""
-Alert Model
-"""
-
 from datetime import datetime, timezone
 from app.extensions import db
 
@@ -32,6 +28,3 @@ class Alert(db.Model):
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,
             'acknowledged': self.acknowledged
         }
-    
-    def __repr__(self):
-        return f'<Alert {self.alert_type} - {self.severity}>'

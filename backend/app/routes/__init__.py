@@ -8,107 +8,61 @@ from app.models import Device, PortScan, TrafficStat, Alert
 
 api_bp = Blueprint('api', __name__)
 
-# Import route modules
-from app.routes import ingest
-
 @api_bp.route('/health')
 def health():
     return jsonify({'status': 'ok', 'service': 'NetSentry API'})
 
 @api_bp.route('/devices')
 def get_devices():
-    devices = Device.query.order_by(Device.last_seen.desc()).all()
-    return jsonify({
-        'devices': [d.to_dict() for d in devices],
-        'count': len(devices)
-    })
-
-@api_bp.route('/devices/<int:device_id>')
-def get_device(device_id):
-    device = Device.query.get_or_404(device_id)
-    return jsonify(device.to_dict())
-
-@api_bp.route('/devices/<int:device_id>/ports')
-def get_device_ports(device_id):
-    device = Device.query.get_or_404(device_id)
-    ports = device.port_scans.order_by(PortScan.scanned_at.desc()).all()
-    return jsonify({
-        'device': device.to_dict(),
-        'ports': [p.to_dict() for p in ports]
-    })
-
-@api_bp.route('/ports')
-def get_ports():
-    status = request.args.get('status')
-    protocol = request.args.get('protocol')
-    port = request.args.get('port')
-    
-    query = PortScan.query
-    if status:
-        query = query.filter_by(status=status)
-    if protocol:
-        query = query.filter_by(protocol=protocol)
-    if port:
-        query = query.filter_by(port=int(port))
-    
-    ports = query.order_by(PortScan.port.asc()).all()
-    return jsonify({
-        'ports': [p.to_dict() for p in ports],
-        'count': len(ports)
-    })
-
-@api_bp.route('/traffic')
-def get_traffic():
-    limit = request.args.get('limit', 100, type=int)
-    stats = TrafficStat.query.order_by(TrafficStat.timestamp.desc()).limit(limit).all()
-    return jsonify({
-        'traffic': [s.to_dict() for s in stats],
-        'count': len(stats)
-    })
-
-@api_bp.route('/alerts')
-def get_alerts():
-    acknowledged = request.args.get('acknowledged', 'false').lower() == 'true'
-    severity = request.args.get('severity')
-    
-    query = Alert.query
-    if not acknowledged:
-        query = query.filter_by(acknowledged=False)
-    if severity:
-        query = query.filter_by(severity=severity)
-    
-    alerts = query.order_by(Alert.timestamp.desc()).limit(100).all()
-    return jsonify({
-        'alerts': [a.to_dict() for a in alerts],
-        'count': len(alerts)
-    })
-
-@api_bp.route('/alerts/<int:alert_id>/acknowledge', methods=['POST'])
-def acknowledge_alert(alert_id):
-    alert = Alert.query.get_or_404(alert_id)
-    alert.acknowledged = True
-    db.session.commit()
-    return jsonify({
-        'status': 'success',
-        'message': 'Alert acknowledged',
-        'alert': alert.to_dict()
-    })
+    try:
+        devices = Device.query.all()
+        return jsonify({
+            'devices': [d.to_dict() for d in devices],
+            'count': len(devices)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/dashboard/summary')
 def dashboard_summary():
-    total_devices = Device.query.count()
-    online_devices = Device.query.filter_by(status='ONLINE').count()
-    offline_devices = Device.query.filter_by(status='OFFLINE').count()
-    open_ports = PortScan.query.filter_by(status='OPEN').count()
-    
-    latest_traffic = TrafficStat.query.order_by(TrafficStat.timestamp.desc()).first()
-    unacknowledged_alerts = Alert.query.filter_by(acknowledged=False).count()
-    
-    return jsonify({
-        'total_devices': total_devices,
-        'online_devices': online_devices,
-        'offline_devices': offline_devices,
-        'open_ports': open_ports,
-        'latest_traffic': latest_traffic.to_dict() if latest_traffic else None,
-        'unacknowledged_alerts': unacknowledged_alerts
-    })
+    try:
+        total_devices = Device.query.count()
+        online_devices = Device.query.filter_by(status='ONLINE').count()
+        offline_devices = Device.query.filter_by(status='OFFLINE').count()
+        open_ports = PortScan.query.filter_by(status='OPEN').count()
+        
+        latest_traffic = TrafficStat.query.order_by(TrafficStat.timestamp.desc()).first()
+        unacknowledged_alerts = Alert.query.filter_by(acknowledged=False).count()
+        
+        return jsonify({
+            'total_devices': total_devices,
+            'online_devices': online_devices,
+            'offline_devices': offline_devices,
+            'open_ports': open_ports,
+            'latest_traffic': latest_traffic.to_dict() if latest_traffic else None,
+            'unacknowledged_alerts': unacknowledged_alerts
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/traffic')
+def get_traffic():
+    try:
+        stats = TrafficStat.query.order_by(TrafficStat.timestamp.desc()).limit(100).all()
+        return jsonify({
+            'traffic': [s.to_dict() for s in stats],
+            'count': len(stats)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/alerts')
+def get_alerts():
+    try:
+        alerts = Alert.query.order_by(Alert.timestamp.desc()).limit(100).all()
+        return jsonify({
+            'alerts': [a.to_dict() for a in alerts],
+            'count': len(alerts)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

@@ -1,7 +1,3 @@
-"""
-TrafficStat Model
-"""
-
 from datetime import datetime, timezone
 from app.extensions import db
 
@@ -27,6 +23,3 @@ class TrafficStat(db.Model):
             'bandwidth_mbps': round((self.bandwidth_bytes or 0) * 8 / 1000000, 2),
             'protocol_breakdown': self.protocol_breakdown or {'tcp': 0, 'udp': 0, 'icmp': 0, 'other': 0}
         }
-    
-    def __repr__(self):
-        return f'<TrafficStat {self.timestamp} - {self.packets_per_sec} pps>'

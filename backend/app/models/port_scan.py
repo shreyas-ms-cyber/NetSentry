@@ -1,7 +1,3 @@
-"""
-PortScan Model
-"""
-
 from datetime import datetime, timezone
 from app.extensions import db
 
@@ -29,6 +25,3 @@ class PortScan(db.Model):
             'status': self.status,
             'scanned_at': self.scanned_at.isoformat() if self.scanned_at else None
         }
-    
-    def __repr__(self):
-        return f'<PortScan {self.port}/{self.protocol} - {self.status}>'
