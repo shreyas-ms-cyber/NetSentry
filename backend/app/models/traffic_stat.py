@@ -1,7 +1,3 @@
-"""
-TrafficStat Model - Represents network traffic statistics
-"""
-
 from datetime import datetime, timezone
 from app.extensions import db
 

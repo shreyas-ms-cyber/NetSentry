@@ -1,7 +1,3 @@
-"""
-Alert Model - Represents security alerts from network monitoring
-"""
-
 from datetime import datetime, timezone
 from app.extensions import db
 

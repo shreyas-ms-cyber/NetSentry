@@ -1,8 +1,8 @@
 """
-Flask extensions - Single source of truth for db instance
+Flask extensions initialization
 """
 
 from flask_sqlalchemy import SQLAlchemy
 
-# This is the ONE db instance used everywhere
+# This is the SINGLE db instance used everywhere
 db = SQLAlchemy()

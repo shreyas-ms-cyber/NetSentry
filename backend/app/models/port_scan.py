@@ -1,7 +1,3 @@
-"""
-PortScan Model - Represents port scan results for devices
-"""
-
 from datetime import datetime, timezone
 from app.extensions import db
 

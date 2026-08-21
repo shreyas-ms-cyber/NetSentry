@@ -6,12 +6,10 @@ from flask import request, jsonify
 from app.extensions import db
 from app.routes import api_bp
 from app.models import Device, PortScan, TrafficStat, Alert
-from app.services.alert_service import AlertService
 from datetime import datetime, timezone
 import logging
 
 logger = logging.getLogger(__name__)
-alert_service = AlertService()
 
 @api_bp.route('/devices/ingest', methods=['POST'])
 def ingest_devices():
@@ -39,9 +37,7 @@ def ingest_devices():
         is_new = False
         
         if existing:
-            # Check if device was offline and is now online
             was_offline = existing.status == 'OFFLINE'
-            
             existing.last_seen = datetime.now(timezone.utc)
             existing.status = 'ONLINE'
             if device_data.get('hostname'):
@@ -49,7 +45,6 @@ def ingest_devices():
             if device_data.get('vendor') and device_data.get('vendor') != 'Unknown Vendor':
                 existing.vendor = device_data.get('vendor')
             
-            # If device was offline, generate online alert
             if was_offline:
                 alert = Alert(
                     alert_type='DEVICE_ONLINE',
@@ -64,7 +59,6 @@ def ingest_devices():
             
             updated_count += 1
         else:
-            # New device
             device = Device(
                 ip_address=ip,
                 mac_address=mac,
@@ -75,9 +69,8 @@ def ingest_devices():
                 last_seen=datetime.now(timezone.utc)
             )
             db.session.add(device)
-            db.session.flush()  # Get the device ID
+            db.session.flush()
             
-            # Generate new device alert
             alert = Alert(
                 alert_type='NEW_DEVICE',
                 device_id=device.id,
@@ -92,8 +85,7 @@ def ingest_devices():
             created_count += 1
             is_new = True
         
-        # Check for new open ports if port_scans provided
-        if device_data.get('port_scans'):
+        if device_data.get('port_scans') and existing:
             for scan in device_data['port_scans']:
                 if scan.get('status') != 'OPEN':
                     continue
@@ -102,16 +94,14 @@ def ingest_devices():
                 protocol = scan.get('protocol', 'TCP')
                 service = scan.get('service')
                 
-                # Check if this port was previously open
                 previous_open = PortScan.query.filter_by(
-                    device_id=existing.id if existing else device.id,
+                    device_id=existing.id,
                     port=port,
                     protocol=protocol,
                     status='OPEN'
                 ).first()
                 
-                if not previous_open and existing:  # Only alert for existing devices (new devices will have their own alert)
-                    # Check if alert already exists
+                if not previous_open:
                     existing_alert = Alert.query.filter_by(
                         device_id=existing.id,
                         alert_type='NEW_OPEN_PORT'
@@ -132,7 +122,6 @@ def ingest_devices():
                         alerts_generated.append(alert)
                         logger.info(f"🔔 New Open Port Alert: {ip}:{port}/{protocol}")
     
-    # Commit all changes
     try:
         db.session.commit()
     except Exception as e:
@@ -140,7 +129,8 @@ def ingest_devices():
         logger.error(f"Device ingestion error: {e}")
         return jsonify({'error': f'Database error: {str(e)}'}), 500
     
-    # Check for offline devices (after all updates)
+    from app.services.alert_service import AlertService
+    alert_service = AlertService()
     offline_alerts = alert_service.check_device_offline()
     
     return jsonify({
@@ -198,7 +188,6 @@ def ingest_port_scans():
             else:
                 scanned_at = datetime.now(timezone.utc)
             
-            # Check if this is a new open port
             is_new_open = False
             if status == 'OPEN':
                 previous_open = PortScan.query.filter_by(
@@ -209,7 +198,6 @@ def ingest_port_scans():
                 ).first()
                 is_new_open = not previous_open
             
-            # Check existing scan
             existing = PortScan.query.filter_by(
                 device_id=device.id,
                 port=port,
@@ -229,9 +217,7 @@ def ingest_port_scans():
                 )
                 db.session.add(port_scan)
             
-            # Generate alert for new open port
             if is_new_open:
-                # Check if alert already exists
                 existing_alert = Alert.query.filter_by(
                     device_id=device.id,
                     alert_type='NEW_OPEN_PORT'
