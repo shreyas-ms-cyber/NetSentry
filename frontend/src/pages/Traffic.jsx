@@ -7,12 +7,6 @@ const Traffic = () => {
   const [loading, setLoading] = useState(true)
   const [trafficData, setTrafficData] = useState([])
   const [error, setError] = useState(null)
-  const [stats, setStats] = useState({
-    totalPackets: 0,
-    avgPps: 0,
-    peakPps: 0,
-    totalBandwidth: 0
-  })
 
   const fetchTraffic = async () => {
     try {
@@ -20,25 +14,13 @@ const Traffic = () => {
       setError(null)
       const response = await getTraffic({ limit: 100 })
       
-      // Handle different response formats
+      // SAFE: Always ensure we have an array
       let data = []
       if (response && response.data) {
         data = Array.isArray(response.data) ? response.data : []
       }
       
       setTrafficData(data)
-      
-      if (data.length > 0) {
-        const ppsValues = data.map(d => Number(d.packets_per_sec) || 0)
-        const bandwidthValues = data.map(d => Number(d.bandwidth_bytes) || 0)
-        
-        setStats({
-          totalPackets: data.reduce((sum, d) => sum + (Number(d.total_packets) || 0), 0),
-          avgPps: ppsValues.reduce((a, b) => a + b, 0) / ppsValues.length,
-          peakPps: Math.max(...ppsValues),
-          totalBandwidth: bandwidthValues.reduce((a, b) => a + b, 0)
-        })
-      }
     } catch (err) {
       console.error('Error fetching traffic:', err)
       setError('Failed to load traffic data')
@@ -51,34 +33,52 @@ const Traffic = () => {
     fetchTraffic()
   }, [])
 
-  // Get latest traffic for protocol breakdown
-  const latestTraffic = trafficData.length > 0 ? trafficData[0] : null
+  // SAFE: Get latest traffic
+  const latestTraffic = trafficData && trafficData.length > 0 ? trafficData[0] : null
   
-  // Safe protocol breakdown
+  // SAFE: Protocol breakdown with fallback
   const getProtocolBreakdown = () => {
     if (!latestTraffic) return { tcp: 0, udp: 0, icmp: 0, other: 0 }
     const pb = latestTraffic.protocol_breakdown || {}
     return {
-      tcp: Number(pb.tcp) || 0,
-      udp: Number(pb.udp) || 0,
-      icmp: Number(pb.icmp) || 0,
-      other: Number(pb.other) || 0
+      tcp: typeof pb.tcp === 'number' ? pb.tcp : 0,
+      udp: typeof pb.udp === 'number' ? pb.udp : 0,
+      icmp: typeof pb.icmp === 'number' ? pb.icmp : 0,
+      other: typeof pb.other === 'number' ? pb.other : 0
     }
   }
 
-  // Safe top talkers
+  // SAFE: Top talkers with fallback
   const getTopTalkers = () => {
     if (!latestTraffic) return []
     const talkers = latestTraffic.top_talkers
     return Array.isArray(talkers) ? talkers : []
   }
 
+  // SAFE: Calculate stats
+  const calculateStats = () => {
+    if (!trafficData || trafficData.length === 0) {
+      return { totalPackets: 0, avgPps: 0, peakPps: 0, totalBandwidth: 0 }
+    }
+    
+    const ppsValues = trafficData.map(d => typeof d.packets_per_sec === 'number' ? d.packets_per_sec : 0)
+    const bandwidthValues = trafficData.map(d => typeof d.bandwidth_bytes === 'number' ? d.bandwidth_bytes : 0)
+    
+    return {
+      totalPackets: trafficData.reduce((sum, d) => sum + (typeof d.total_packets === 'number' ? d.total_packets : 0), 0),
+      avgPps: ppsValues.length > 0 ? ppsValues.reduce((a, b) => a + b, 0) / ppsValues.length : 0,
+      peakPps: ppsValues.length > 0 ? Math.max(...ppsValues) : 0,
+      totalBandwidth: bandwidthValues.reduce((a, b) => a + b, 0)
+    }
+  }
+
+  const stats = calculateStats()
   const protocolBreakdown = getProtocolBreakdown()
   const topTalkers = getTopTalkers()
-  const hasData = trafficData.length > 0
+  const hasData = trafficData && trafficData.length > 0
   const hasProtocolData = Object.values(protocolBreakdown).some(v => v > 0)
 
-  // Show error state
+  // Error state
   if (error) {
     return (
       <div className="traffic-page">
@@ -144,25 +144,29 @@ const Traffic = () => {
             <div className="chart-loading">Loading traffic data...</div>
           ) : hasData ? (
             <div className="chart-bars-wrapper">
-              {trafficData.slice(0, 50).reverse().map((d, i) => {
-                const pps = Number(d.packets_per_sec) || 0
-                const maxPps = Math.max(...trafficData.map(t => Number(t.packets_per_sec) || 0), 1)
-                const height = Math.max(4, (pps / maxPps) * 90)
-                return (
-                  <div key={i} className="chart-bar-item">
-                    <div 
-                      className="chart-bar-fill" 
-                      style={{ 
-                        height: `${height}%`,
-                        backgroundColor: pps > 0 ? '#00E5FF' : 'rgba(255,255,255,0.05)'
-                      }}
-                    />
-                    <span className="chart-bar-label">
-                      {new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                )
-              })}
+              {/* SAFE: Only map if trafficData is an array */}
+              {Array.isArray(trafficData) && trafficData.length > 0 ? (
+                trafficData.slice(0, 50).reverse().map((d, i) => {
+                  const pps = typeof d.packets_per_sec === 'number' ? d.packets_per_sec : 0
+                  const allPps = trafficData.map(t => typeof t.packets_per_sec === 'number' ? t.packets_per_sec : 0)
+                  const maxPps = Math.max(...allPps, 1)
+                  const height = Math.max(4, (pps / maxPps) * 90)
+                  return (
+                    <div key={i} className="chart-bar-item">
+                      <div 
+                        className="chart-bar-fill" 
+                        style={{ 
+                          height: `${height}%`,
+                          backgroundColor: pps > 0 ? '#00E5FF' : 'rgba(255,255,255,0.05)'
+                        }}
+                      />
+                      <span className="chart-bar-label">
+                        {d.timestamp ? new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </span>
+                    </div>
+                  )
+                })
+              ) : null}
             </div>
           ) : (
             <div className="chart-empty">
@@ -187,6 +191,7 @@ const Traffic = () => {
             {loading ? (
               <div className="protocol-loading">Loading...</div>
             ) : hasProtocolData ? (
+              // SAFE: Object.entries is safe
               Object.entries(protocolBreakdown).map(([proto, value]) => (
                 <div key={proto} className="protocol-item">
                   <span className="protocol-name">{proto.toUpperCase()}</span>
@@ -214,24 +219,27 @@ const Traffic = () => {
             {loading ? (
               <div className="talkers-loading">Loading...</div>
             ) : topTalkers.length > 0 ? (
-              topTalkers.slice(0, 5).map((talker, i) => {
-                const maxBytes = topTalkers[0]?.bytes_mb || 1
-                const bytes = Number(talker.bytes_mb) || 0
-                return (
-                  <div key={i} className="talker-item">
-                    <div className="talker-info">
-                      <span className="talker-ip">{talker.ip || 'Unknown'}</span>
-                      <span className="talker-traffic">{bytes.toFixed(1)} MB</span>
+              // SAFE: Only map if topTalkers is an array
+              Array.isArray(topTalkers) && topTalkers.length > 0 ? (
+                topTalkers.slice(0, 5).map((talker, i) => {
+                  const maxBytes = topTalkers[0]?.bytes_mb || 1
+                  const bytes = typeof talker.bytes_mb === 'number' ? talker.bytes_mb : 0
+                  return (
+                    <div key={i} className="talker-item">
+                      <div className="talker-info">
+                        <span className="talker-ip">{talker.ip || 'Unknown'}</span>
+                        <span className="talker-traffic">{bytes.toFixed(1)} MB</span>
+                      </div>
+                      <div className="talker-bar-track">
+                        <div 
+                          className="talker-bar-fill" 
+                          style={{ width: `${Math.min((bytes / maxBytes) * 100, 100)}%` }} 
+                        />
+                      </div>
                     </div>
-                    <div className="talker-bar-track">
-                      <div 
-                        className="talker-bar-fill" 
-                        style={{ width: `${Math.min((bytes / maxBytes) * 100, 100)}%` }} 
-                      />
-                    </div>
-                  </div>
-                )
-              })
+                  )
+                })
+              ) : null
             ) : (
               <div className="talkers-empty">No traffic data available</div>
             )}
