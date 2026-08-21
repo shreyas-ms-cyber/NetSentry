@@ -1,5 +1,5 @@
 """
-NetSentry Backend - Complete Working Version
+NetSentry Backend - Complete Working Version with Schema Fix
 """
 
 import os
@@ -115,21 +115,26 @@ def create_app():
         acknowledged = db.Column(db.Boolean, default=False)
         
         def to_dict(self):
+            device = Device.query.get(self.device_id) if self.device_id else None
             return {
                 'id': self.id,
                 'alert_type': self.alert_type,
                 'device_id': self.device_id,
-                'device_ip': Device.query.get(self.device_id).ip_address if self.device_id else None,
+                'device_ip': device.ip_address if device else None,
                 'description': self.description,
                 'severity': self.severity,
                 'timestamp': self.timestamp.isoformat() if self.timestamp else None,
                 'acknowledged': self.acknowledged
             }
     
-    # Create tables
+    # Drop and recreate tables with correct schema
     with app.app_context():
+        # Drop existing tables
+        db.drop_all()
+        print("✅ Dropped existing tables")
+        # Create new tables
         db.create_all()
-        print("✅ Database tables created")
+        print("✅ Created new tables with correct schema")
     
     # ============ ROUTES ============
     
@@ -176,7 +181,7 @@ def create_app():
                 'count': len(devices)
             })
         except Exception as e:
-            return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+            return jsonify({'error': str(e)}), 500
     
     @app.route('/api/devices/<int:device_id>')
     def get_device(device_id):
