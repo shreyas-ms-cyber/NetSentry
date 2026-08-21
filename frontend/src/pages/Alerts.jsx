@@ -222,7 +222,7 @@ const Alerts = () => {
                   <span className="alert-type">{getAlertLabel(alert.alert_type)}</span>
                   {getSeverityBadge(alert.severity)}
                   {alert.acknowledged && (
-                    <span className="ack-badge">✓ Acknowledged</span>
+                    <span className="ack-badge">Acknowledged</span>
                   )}
                 </div>
                 <p className="alert-description">{alert.description}</p>
