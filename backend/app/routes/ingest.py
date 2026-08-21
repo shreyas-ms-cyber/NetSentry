@@ -5,7 +5,7 @@ Ingestion Routes - Protected by X-Agent-Key
 from flask import request, jsonify
 from app.extensions import db
 from app.routes import api_bp
-from app.models import Device, PortScan
+from app.models import Device, PortScan, TrafficStat
 from datetime import datetime, timezone
 import logging
 
@@ -85,21 +85,18 @@ def ingest_port_scans():
     
     for scan_data in port_scans_data:
         try:
-            # Get device IP - check both device_ip and ip_address fields
             device_ip = scan_data.get('device_ip') or scan_data.get('ip_address')
             
             if not device_ip:
                 errors.append(f"Missing device_ip for port scan: {scan_data}")
                 continue
             
-            # Find the device
             device = Device.query.filter_by(ip_address=device_ip).first()
             if not device:
-                logger.warning(f"Device not found for IP: {device_ip}, skipping")
+                logger.warning(f"Device not found for IP: {device_ip}")
                 errors.append(f"Device not found for IP: {device_ip}")
                 continue
             
-            # Extract port scan data
             port = scan_data.get('port')
             protocol = scan_data.get('protocol', 'TCP')
             status = scan_data.get('status', 'CLOSED')
@@ -109,7 +106,6 @@ def ingest_port_scans():
                 errors.append(f"Missing port for scan: {scan_data}")
                 continue
             
-            # Parse scanned_at
             if scanned_at_str:
                 try:
                     scanned_at = datetime.fromisoformat(scanned_at_str)
@@ -118,7 +114,6 @@ def ingest_port_scans():
             else:
                 scanned_at = datetime.now(timezone.utc)
             
-            # Check if this port scan already exists for this device
             existing = PortScan.query.filter_by(
                 device_id=device.id,
                 port=port,
@@ -126,11 +121,9 @@ def ingest_port_scans():
             ).order_by(PortScan.scanned_at.desc()).first()
             
             if existing:
-                # Update existing scan
                 existing.status = status
                 existing.scanned_at = scanned_at
             else:
-                # Create new port scan
                 port_scan = PortScan(
                     device_id=device.id,
                     port=port,
@@ -161,3 +154,52 @@ def ingest_port_scans():
         'errors': errors,
         'total': len(port_scans_data)
     }), 200
+
+
+@api_bp.route('/traffic/ingest', methods=['POST'])
+def ingest_traffic():
+    """Ingest traffic statistics from agent"""
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'error': 'Invalid data format'}), 400
+    
+    try:
+        # Extract traffic data
+        timestamp_str = data.get('timestamp')
+        packets_per_sec = data.get('packets_per_sec', 0)
+        bandwidth_bytes = data.get('bandwidth_bytes', 0)
+        protocol_breakdown = data.get('protocol_breakdown', {})
+        
+        # Parse timestamp
+        if timestamp_str:
+            try:
+                timestamp = datetime.fromisoformat(timestamp_str)
+            except ValueError:
+                timestamp = datetime.now(timezone.utc)
+        else:
+            timestamp = datetime.now(timezone.utc)
+        
+        # Create traffic stat
+        traffic_stat = TrafficStat(
+            timestamp=timestamp,
+            packets_per_sec=packets_per_sec,
+            bandwidth_bytes=bandwidth_bytes,
+            protocol_breakdown=protocol_breakdown
+        )
+        
+        db.session.add(traffic_stat)
+        db.session.commit()
+        
+        logger.info(f"✅ Traffic stats saved: {packets_per_sec:.2f} pps, {bandwidth_bytes:.2f} B/s")
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Traffic stats ingested successfully',
+            'id': traffic_stat.id
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Traffic ingestion error: {e}")
+        return jsonify({'error': f'Database error: {str(e)}'}), 500

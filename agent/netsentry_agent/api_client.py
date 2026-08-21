@@ -102,8 +102,6 @@ class APIClient:
         
         logger.info(f"📤 Sending {len(port_scans)} port scans to backend...")
         
-        # Group by device IP (since we don't have device IDs yet)
-        # The backend will handle device lookup by IP
         data = {'port_scans': port_scans}
         result = self._request('POST', 'ports/ingest', data)
         
@@ -175,14 +173,6 @@ def test_api_connection():
             'status': 'OPEN',
             'service': 'SSH',
             'scanned_at': datetime.utcnow().isoformat()
-        },
-        {
-            'device_ip': '192.168.1.99',
-            'port': 80,
-            'protocol': 'TCP',
-            'status': 'OPEN',
-            'service': 'HTTP',
-            'scanned_at': datetime.utcnow().isoformat()
         }
     ]
     
@@ -192,6 +182,28 @@ def test_api_connection():
         print("✅ Port scan ingestion successful!")
     else:
         print("❌ Port scan ingestion failed!")
+    
+    # Test traffic ingestion
+    test_traffic = {
+        'timestamp': datetime.utcnow().isoformat(),
+        'packets_per_sec': 150.5,
+        'bandwidth_bytes': 1024000,
+        'bandwidth_mbps': 8.19,
+        'total_packets': 1000,
+        'protocol_breakdown': {'tcp': 60, 'udp': 30, 'icmp': 5, 'other': 5},
+        'packet_counts': {'tcp': 600, 'udp': 300, 'icmp': 50, 'other': 50},
+        'top_talkers': [
+            {'ip': '192.168.1.10', 'bytes': 524288, 'packets': 500, 'bytes_mb': 0.5},
+            {'ip': '192.168.1.20', 'bytes': 262144, 'packets': 250, 'bytes_mb': 0.25}
+        ]
+    }
+    
+    print("\nTesting traffic ingestion...")
+    result = client.ingest_traffic(test_traffic)
+    if result:
+        print("✅ Traffic ingestion successful!")
+    else:
+        print("❌ Traffic ingestion failed!")
     
     return True
 
