@@ -1,5 +1,5 @@
 """
-NetSentry Backend - Complete Working Version with All Routes
+NetSentry Backend - Complete Working Version
 """
 
 import os
@@ -55,6 +55,9 @@ def create_app():
         status = db.Column(db.String(20), default='ONLINE')
         
         def to_dict(self):
+            # Count open ports
+            from app import db as _db
+            port_count = PortScan.query.filter_by(device_id=self.id, status='OPEN').count()
             return {
                 'id': self.id,
                 'ip_address': self.ip_address,
@@ -64,7 +67,7 @@ def create_app():
                 'first_seen': self.first_seen.isoformat() if self.first_seen else None,
                 'last_seen': self.last_seen.isoformat() if self.last_seen else None,
                 'status': self.status,
-                'open_ports_count': 0
+                'open_ports_count': port_count
             }
     
     class PortScan(db.Model):
@@ -184,6 +187,20 @@ def create_app():
         try:
             device = Device.query.get_or_404(device_id)
             return jsonify(device.to_dict())
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    
+    # NEW: Get ports for a specific device
+    @app.route('/api/devices/<int:device_id>/ports')
+    def get_device_ports(device_id):
+        try:
+            device = Device.query.get_or_404(device_id)
+            ports = PortScan.query.filter_by(device_id=device_id).order_by(PortScan.port.asc()).all()
+            return jsonify({
+                'device': device.to_dict(),
+                'ports': [p.to_dict() for p in ports],
+                'count': len(ports)
+            })
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
