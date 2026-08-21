@@ -72,7 +72,6 @@ class APIClient:
     def ingest_devices(self, devices):
         """Send discovered devices to backend"""
         if not devices:
-            logger.info("No devices to ingest")
             return True
         
         logger.info(f"📤 Sending {len(devices)} devices to backend...")
@@ -97,7 +96,6 @@ class APIClient:
     def ingest_port_scans(self, port_scans):
         """Send port scan results to backend"""
         if not port_scans:
-            logger.info("No port scans to ingest")
             return True
         
         logger.info(f"📤 Sending {len(port_scans)} port scans to backend...")
@@ -143,7 +141,6 @@ def test_api_connection():
         print("✅ Backend is reachable!")
     else:
         print("❌ Cannot reach backend!")
-        print("   Make sure the backend is running on port 5000")
         return False
     
     # Test device ingestion
@@ -152,9 +149,7 @@ def test_api_connection():
         'mac_address': 'AA:BB:CC:DD:EE:99',
         'vendor': 'Test Vendor',
         'hostname': 'test-device',
-        'status': 'ONLINE',
-        'first_seen': datetime.utcnow().isoformat(),
-        'last_seen': datetime.utcnow().isoformat()
+        'status': 'ONLINE'
     }]
     
     print("\nTesting device ingestion...")
@@ -164,48 +159,4 @@ def test_api_connection():
     else:
         print("❌ Device ingestion failed!")
     
-    # Test port scan ingestion
-    test_port_scans = [
-        {
-            'device_ip': '192.168.1.99',
-            'port': 22,
-            'protocol': 'TCP',
-            'status': 'OPEN',
-            'service': 'SSH',
-            'scanned_at': datetime.utcnow().isoformat()
-        }
-    ]
-    
-    print("\nTesting port scan ingestion...")
-    result = client.ingest_port_scans(test_port_scans)
-    if result:
-        print("✅ Port scan ingestion successful!")
-    else:
-        print("❌ Port scan ingestion failed!")
-    
-    # Test traffic ingestion
-    test_traffic = {
-        'timestamp': datetime.utcnow().isoformat(),
-        'packets_per_sec': 150.5,
-        'bandwidth_bytes': 1024000,
-        'bandwidth_mbps': 8.19,
-        'total_packets': 1000,
-        'protocol_breakdown': {'tcp': 60, 'udp': 30, 'icmp': 5, 'other': 5},
-        'packet_counts': {'tcp': 600, 'udp': 300, 'icmp': 50, 'other': 50},
-        'top_talkers': [
-            {'ip': '192.168.1.10', 'bytes': 524288, 'packets': 500, 'bytes_mb': 0.5},
-            {'ip': '192.168.1.20', 'bytes': 262144, 'packets': 250, 'bytes_mb': 0.25}
-        ]
-    }
-    
-    print("\nTesting traffic ingestion...")
-    result = client.ingest_traffic(test_traffic)
-    if result:
-        print("✅ Traffic ingestion successful!")
-    else:
-        print("❌ Traffic ingestion failed!")
-    
     return True
-
-if __name__ == '__main__':
-    test_api_connection()

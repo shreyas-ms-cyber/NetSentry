@@ -1,5 +1,5 @@
 """
-NetSentry Backend - Complete Working Version
+NetSentry Backend - Complete Working Version with All Routes
 """
 
 import os
@@ -127,7 +127,7 @@ def create_app():
                 'acknowledged': self.acknowledged
             }
     
-    # Create tables (with drop if needed)
+    # Create tables
     with app.app_context():
         db.create_all()
         print("✅ Database tables created")
@@ -228,9 +228,23 @@ def create_app():
                 'count': len(alerts_list)
             })
         except Exception as e:
-            print(f"Error in /api/alerts: {str(e)}")
-            print(traceback.format_exc())
-            return jsonify({'error': str(e), 'alerts': [], 'count': 0}), 500
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/alerts/<int:alert_id>/acknowledge', methods=['POST'])
+    def acknowledge_alert(alert_id):
+        try:
+            alert = Alert.query.get_or_404(alert_id)
+            alert.acknowledged = True
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'message': 'Alert acknowledged',
+                'alert': alert.to_dict()
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    
+    # ============ INGESTION ROUTES ============
     
     @app.route('/api/devices/ingest', methods=['POST'])
     def ingest_devices():
@@ -274,6 +288,87 @@ def create_app():
                 'updated': updated_count,
                 'total': len(devices_data)
             }), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/ports/ingest', methods=['POST'])
+    def ingest_port_scans():
+        try:
+            data = request.get_json()
+            if not data or 'port_scans' not in data:
+                return jsonify({'error': 'Invalid data format'}), 400
+            
+            port_scans_data = data['port_scans']
+            created_count = 0
+            
+            for scan_data in port_scans_data:
+                device_ip = scan_data.get('device_ip') or scan_data.get('ip_address')
+                if not device_ip:
+                    continue
+                
+                device = Device.query.filter_by(ip_address=device_ip).first()
+                if not device:
+                    continue
+                
+                port = scan_data.get('port')
+                protocol = scan_data.get('protocol', 'TCP')
+                status = scan_data.get('status', 'CLOSED')
+                scanned_at_str = scan_data.get('scanned_at')
+                
+                if not port:
+                    continue
+                
+                scanned_at = datetime.fromisoformat(scanned_at_str) if scanned_at_str else datetime.now(timezone.utc)
+                
+                port_scan = PortScan(
+                    device_id=device.id,
+                    port=port,
+                    protocol=protocol,
+                    status=status,
+                    scanned_at=scanned_at
+                )
+                db.session.add(port_scan)
+                created_count += 1
+            
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'created': created_count,
+                'total': len(port_scans_data)
+            }), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/traffic/ingest', methods=['POST'])
+    def ingest_traffic():
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({'error': 'Invalid data format'}), 400
+            
+            timestamp_str = data.get('timestamp')
+            packets_per_sec = data.get('packets_per_sec', 0)
+            bandwidth_bytes = data.get('bandwidth_bytes', 0)
+            protocol_breakdown = data.get('protocol_breakdown', {})
+            
+            timestamp = datetime.fromisoformat(timestamp_str) if timestamp_str else datetime.now(timezone.utc)
+            
+            traffic_stat = TrafficStat(
+                timestamp=timestamp,
+                packets_per_sec=packets_per_sec,
+                bandwidth_bytes=bandwidth_bytes,
+                protocol_breakdown=protocol_breakdown
+            )
+            db.session.add(traffic_stat)
+            db.session.commit()
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Traffic stats ingested successfully',
+                'id': traffic_stat.id
+            }), 201
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
