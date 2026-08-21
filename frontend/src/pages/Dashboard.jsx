@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import PageContainer from '../components/layout/PageContainer'
 import { getDashboardSummary, getTraffic, getAlerts } from '../services/api'
 import './Dashboard.css'
 
@@ -34,6 +33,14 @@ const Dashboard = () => {
     fetchAllData()
   }, [])
 
+  // If data is empty, refetch after 5 seconds (in case agent is still starting)
+  useEffect(() => {
+    if (!loading && summary && Object.keys(summary).length === 0) {
+      const timer = setTimeout(() => fetchAllData(), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [loading, summary])
+
   const stats = [
     { label: 'Total Devices', value: summary?.total_devices ?? '—', icon: 'server', color: '#00E5FF' },
     { label: 'Online Devices', value: summary?.online_devices ?? '—', icon: 'check-circle', color: '#00D26A' },
@@ -43,9 +50,26 @@ const Dashboard = () => {
     { label: 'Bandwidth', value: summary?.latest_traffic?.bandwidth_mbps?.toFixed(1) ?? '—', icon: 'gauge-high', color: '#00D26A' },
   ]
 
-  // Get protocol breakdown and top talkers from latest_traffic
   const protocolBreakdown = summary?.latest_traffic?.protocol_breakdown || {}
   const topTalkers = summary?.latest_traffic?.top_talkers || []
+
+  // Show loading skeletons while fetching
+  if (loading) {
+    return (
+      <div className="dashboard">
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">Network Command Center</h1>
+          <p className="dashboard-subtitle">Loading...</p>
+        </div>
+        <div className="stats-grid">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="stat-card skeleton" style={{ height: '100px' }} />
+          ))}
+        </div>
+        <div className="chart-card skeleton" style={{ height: '250px' }} />
+      </div>
+    )
+  }
 
   return (
     <div className="dashboard">
