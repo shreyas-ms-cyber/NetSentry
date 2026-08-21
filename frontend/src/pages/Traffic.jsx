@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { getTraffic } from '../services/api'
-import TrafficChart from '../components/dashboard/TrafficChart'
-import ProtocolChart from '../components/dashboard/ProtocolChart'
-import BandwidthChart from '../components/dashboard/BandwidthChart'
-import TopTalkers from '../components/dashboard/TopTalkers'
 import './Traffic.css'
 
 const Traffic = () => {
@@ -46,6 +42,30 @@ const Traffic = () => {
     fetchTraffic()
   }, [])
 
+  // Show loading state while fetching
+  if (loading) {
+    return (
+      <div className="traffic-page">
+        <div className="traffic-header">
+          <div>
+            <h1 className="traffic-title">Network Traffic</h1>
+            <p className="traffic-subtitle">Loading traffic data...</p>
+          </div>
+        </div>
+        <div className="traffic-stats">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="traffic-stat-card skeleton" style={{ height: '80px' }} />
+          ))}
+        </div>
+        <div className="traffic-charts">
+          <div className="traffic-chart-card full-width skeleton" style={{ height: '250px' }} />
+          <div className="traffic-chart-card skeleton" style={{ height: '200px' }} />
+          <div className="traffic-chart-card skeleton" style={{ height: '200px' }} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="traffic-page">
       {/* Header */}
@@ -80,7 +100,7 @@ const Traffic = () => {
         </div>
       </div>
 
-      {/* Charts */}
+      {/* Traffic Timeline - Simple Bar Chart */}
       <div className="traffic-charts">
         <div className="traffic-chart-card full-width">
           <div className="chart-card-header">
@@ -89,19 +109,34 @@ const Traffic = () => {
               <div className="chart-card-subtitle">Packets per second over time</div>
             </div>
           </div>
-          <TrafficChart data={trafficData} loading={loading} />
-        </div>
-
-        <div className="traffic-chart-card">
-          <div className="chart-card-header">
-            <div>
-              <div className="chart-card-title">Bandwidth</div>
-              <div className="chart-card-subtitle">Mbps over time</div>
-            </div>
+          <div className="chart-container">
+            {trafficData.length > 0 ? (
+              <div className="chart-bars-wrapper">
+                {trafficData.slice(0, 50).reverse().map((d, i) => (
+                  <div key={i} className="chart-bar-item">
+                    <div 
+                      className="chart-bar-fill" 
+                      style={{ 
+                        height: `${Math.max(5, (d.packets_per_sec || 0) / (Math.max(...trafficData.map(t => t.packets_per_sec || 0)) || 1) * 100)}%`,
+                        backgroundColor: `rgba(0, 229, 255, ${0.3 + (d.packets_per_sec || 0) / (Math.max(...trafficData.map(t => t.packets_per_sec || 0)) || 1) * 0.6})`
+                      }}
+                    />
+                    <span className="chart-bar-label">
+                      {new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="chart-empty">
+                <p>No traffic data available</p>
+                <span>Start the Local Agent to begin monitoring</span>
+              </div>
+            )}
           </div>
-          <BandwidthChart data={trafficData} loading={loading} />
         </div>
 
+        {/* Protocol Distribution */}
         <div className="traffic-chart-card">
           <div className="chart-card-header">
             <div>
@@ -109,17 +144,53 @@ const Traffic = () => {
               <div className="chart-card-subtitle">Current breakdown</div>
             </div>
           </div>
-          <ProtocolChart data={latestTraffic || {}} loading={loading} />
+          <div className="protocol-list">
+            {latestTraffic?.protocol_breakdown && Object.keys(latestTraffic.protocol_breakdown).length > 0 ? (
+              Object.entries(latestTraffic.protocol_breakdown).map(([proto, value]) => (
+                <div key={proto} className="protocol-item">
+                  <span className="protocol-name">{proto.toUpperCase()}</span>
+                  <div className="protocol-bar-track">
+                    <div className="protocol-bar-fill" style={{ width: `${value}%` }} />
+                  </div>
+                  <span className="protocol-value">{value.toFixed(1)}%</span>
+                </div>
+              ))
+            ) : (
+              <div className="protocol-empty">No protocol data</div>
+            )}
+          </div>
         </div>
 
-        <div className="traffic-chart-card full-width">
+        {/* Top Talkers */}
+        <div className="traffic-chart-card">
           <div className="chart-card-header">
             <div>
               <div className="chart-card-title">Top Talkers</div>
               <div className="chart-card-subtitle">Devices by traffic volume</div>
             </div>
           </div>
-          <TopTalkers data={latestTraffic?.top_talkers || []} loading={loading} />
+          <div className="talkers-list">
+            {latestTraffic?.top_talkers && latestTraffic.top_talkers.length > 0 ? (
+              latestTraffic.top_talkers.slice(0, 5).map((talker, i) => (
+                <div key={i} className="talker-item">
+                  <div className="talker-info">
+                    <span className="talker-ip">{talker.ip}</span>
+                    <span className="talker-traffic">{talker.bytes_mb?.toFixed(1) || '0'} MB</span>
+                  </div>
+                  <div className="talker-bar-track">
+                    <div 
+                      className="talker-bar-fill" 
+                      style={{ 
+                        width: `${Math.min((talker.bytes_mb || 0) / (latestTraffic.top_talkers[0]?.bytes_mb || 1) * 100, 100)}%` 
+                      }} 
+                    />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="talkers-empty">No traffic data available</div>
+            )}
+          </div>
         </div>
       </div>
     </div>

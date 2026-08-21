@@ -3,6 +3,8 @@
   flex-direction: column;
   gap: 20px;
   padding: 4px 0;
+  background: var(--bg-primary);
+  min-height: 100vh;
 }
 
 .traffic-header {
@@ -48,6 +50,7 @@
   color: #fff;
 }
 
+/* Stats */
 .traffic-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -78,6 +81,7 @@
   margin-top: 2px;
 }
 
+/* Charts */
 .traffic-charts {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -90,10 +94,6 @@
   border-radius: var(--radius-md);
   padding: 16px 20px;
   transition: all 0.2s ease;
-}
-
-.traffic-chart-card:hover {
-  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .traffic-chart-card.full-width {
@@ -121,6 +121,185 @@
   color: rgba(255, 255, 255, 0.2);
 }
 
+/* Chart Container */
+.chart-container {
+  height: 200px;
+  display: flex;
+  align-items: flex-end;
+  padding-top: 10px;
+}
+
+.chart-bars-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  min-height: 60px;
+}
+
+.chart-bar-fill {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 3px;
+  transition: height 0.5s ease;
+}
+
+.chart-bar-label {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.15);
+  margin-top: 4px;
+  transform: rotate(-45deg);
+  white-space: nowrap;
+}
+
+.chart-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.chart-empty p {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.chart-empty span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.08);
+}
+
+/* Protocol List */
+.protocol-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.protocol-item {
+  display: grid;
+  grid-template-columns: 50px 1fr 50px;
+  align-items: center;
+  gap: 12px;
+}
+
+.protocol-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-mono);
+}
+
+.protocol-bar-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.protocol-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--success));
+  transition: width 0.6s ease;
+}
+
+.protocol-value {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: right;
+  font-family: var(--font-mono);
+}
+
+.protocol-empty {
+  padding: 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 13px;
+}
+
+/* Talkers */
+.talkers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.talker-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.talker-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.talker-ip {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.talker-traffic {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.talker-bar-track {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.talker-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--info));
+  transition: width 0.6s ease;
+}
+
+.talkers-empty {
+  padding: 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 13px;
+}
+
+/* Skeleton Loading */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Responsive */
 @media (max-width: 1024px) {
   .traffic-stats {
     grid-template-columns: repeat(2, 1fr);
@@ -149,6 +328,9 @@
   .traffic-chart-card {
     padding: 12px 16px;
   }
+  .chart-bar-label {
+    font-size: 6px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -161,5 +343,8 @@
   }
   .traffic-stat-card .stat-value {
     font-size: 16px;
+  }
+  .chart-container {
+    height: 120px;
   }
 }
