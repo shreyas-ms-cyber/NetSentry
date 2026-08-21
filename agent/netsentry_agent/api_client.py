@@ -36,7 +36,7 @@ class APIClient:
                     timeout=10
                 )
                 
-                if response.status_code == 200:
+                if response.status_code in [200, 201]:
                     return response.json()
                 elif response.status_code == 401:
                     logger.error("❌ Authentication failed - Check AGENT_API_KEY")
@@ -77,7 +77,6 @@ class APIClient:
         
         logger.info(f"📤 Sending {len(devices)} devices to backend...")
         
-        # Split into chunks to avoid large payloads
         chunk_size = 50
         success_count = 0
         
@@ -98,10 +97,13 @@ class APIClient:
     def ingest_port_scans(self, port_scans):
         """Send port scan results to backend"""
         if not port_scans:
+            logger.info("No port scans to ingest")
             return True
         
         logger.info(f"📤 Sending {len(port_scans)} port scans to backend...")
         
+        # Group by device IP (since we don't have device IDs yet)
+        # The backend will handle device lookup by IP
         data = {'port_scans': port_scans}
         result = self._request('POST', 'ports/ingest', data)
         
@@ -138,7 +140,6 @@ def test_api_connection():
     
     client = APIClient()
     
-    # Test health
     print(f"Testing connection to: {client.base_url}")
     if client.ping():
         print("✅ Backend is reachable!")
@@ -147,7 +148,7 @@ def test_api_connection():
         print("   Make sure the backend is running on port 5000")
         return False
     
-    # Test ingestion with sample device
+    # Test device ingestion
     test_device = [{
         'ip_address': '192.168.1.99',
         'mac_address': 'AA:BB:CC:DD:EE:99',
@@ -165,7 +166,34 @@ def test_api_connection():
     else:
         print("❌ Device ingestion failed!")
     
-    return result
+    # Test port scan ingestion
+    test_port_scans = [
+        {
+            'device_ip': '192.168.1.99',
+            'port': 22,
+            'protocol': 'TCP',
+            'status': 'OPEN',
+            'service': 'SSH',
+            'scanned_at': datetime.utcnow().isoformat()
+        },
+        {
+            'device_ip': '192.168.1.99',
+            'port': 80,
+            'protocol': 'TCP',
+            'status': 'OPEN',
+            'service': 'HTTP',
+            'scanned_at': datetime.utcnow().isoformat()
+        }
+    ]
+    
+    print("\nTesting port scan ingestion...")
+    result = client.ingest_port_scans(test_port_scans)
+    if result:
+        print("✅ Port scan ingestion successful!")
+    else:
+        print("❌ Port scan ingestion failed!")
+    
+    return True
 
 if __name__ == '__main__':
     test_api_connection()

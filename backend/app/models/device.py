@@ -23,6 +23,10 @@ class Device(db.Model):
     
     def to_dict(self):
         """Convert device to dictionary for API responses"""
+        # Count open ports directly from database
+        from app.models import PortScan
+        open_ports_count = PortScan.query.filter_by(device_id=self.id, status='OPEN').count()
+        
         return {
             'id': self.id,
             'ip_address': self.ip_address,
@@ -32,7 +36,7 @@ class Device(db.Model):
             'first_seen': self.first_seen.isoformat() if self.first_seen else None,
             'last_seen': self.last_seen.isoformat() if self.last_seen else None,
             'status': self.status,
-            'open_ports_count': self.port_scans.filter_by(status='OPEN').count()
+            'open_ports_count': open_ports_count
         }
     
     def __repr__(self):

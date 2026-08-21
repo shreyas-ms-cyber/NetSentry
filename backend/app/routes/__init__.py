@@ -22,25 +22,38 @@ def health():
 def get_devices():
     """Get all devices"""
     devices = Device.query.order_by(Device.last_seen.desc()).all()
+    
+    result = []
+    for device in devices:
+        device_dict = device.to_dict()
+        # Get open ports count
+        open_ports = PortScan.query.filter_by(device_id=device.id, status='OPEN').count()
+        device_dict['open_ports_count'] = open_ports
+        result.append(device_dict)
+    
     return jsonify({
-        'devices': [d.to_dict() for d in devices],
-        'count': len(devices)
+        'devices': result,
+        'count': len(result)
     })
 
 @api_bp.route('/devices/<int:device_id>')
 def get_device(device_id):
     """Get device by ID"""
     device = Device.query.get_or_404(device_id)
-    return jsonify(device.to_dict())
+    device_dict = device.to_dict()
+    open_ports = PortScan.query.filter_by(device_id=device.id, status='OPEN').count()
+    device_dict['open_ports_count'] = open_ports
+    return jsonify(device_dict)
 
 @api_bp.route('/devices/<int:device_id>/ports')
 def get_device_ports(device_id):
     """Get ports for a device"""
     device = Device.query.get_or_404(device_id)
-    ports = device.port_scans.order_by(PortScan.scanned_at.desc()).all()
+    ports = PortScan.query.filter_by(device_id=device_id).order_by(PortScan.port.asc()).all()
     return jsonify({
         'device': device.to_dict(),
-        'ports': [p.to_dict() for p in ports]
+        'ports': [p.to_dict() for p in ports],
+        'count': len(ports)
     })
 
 # Ports endpoints
@@ -59,7 +72,7 @@ def get_ports():
     if port:
         query = query.filter_by(port=int(port))
     
-    ports = query.order_by(PortScan.scanned_at.desc()).limit(100).all()
+    ports = query.order_by(PortScan.port.asc()).all()
     return jsonify({
         'ports': [p.to_dict() for p in ports],
         'count': len(ports)

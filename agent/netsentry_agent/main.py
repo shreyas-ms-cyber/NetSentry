@@ -8,7 +8,7 @@ import logging
 import sys
 import os
 import signal
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Ensure proper import
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,11 +16,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 try:
     from netsentry_agent.config import AgentConfig
     from netsentry_agent.discovery import DeviceDiscovery
+    from netsentry_agent.scanner import PortScanner
     from netsentry_agent.api_client import APIClient
     from netsentry_agent.network_scope import NetworkScopeValidator
 except ImportError:
     from config import AgentConfig
     from discovery import DeviceDiscovery
+    from scanner import PortScanner
     from api_client import APIClient
     from network_scope import NetworkScopeValidator
 
@@ -32,13 +34,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class NetSentryAgent:
-    """Main agent class managing discovery and ingestion"""
+    """Main agent class managing discovery, scanning, and ingestion"""
     
     def __init__(self):
         self.running = True
         self.discovery = DeviceDiscovery()
+        self.scanner = PortScanner(timeout=1.0)
         self.api_client = APIClient()
         self.last_scan_time = None
+        self.discovered_devices = []
         
         # Setup signal handlers
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -50,9 +54,9 @@ class NetSentryAgent:
         self.running = False
     
     def run_scan_cycle(self):
-        """Run a complete scan cycle"""
+        """Run a complete scan cycle: discovery + port scanning"""
         logger.info("=" * 60)
-        logger.info("Starting Discovery Cycle")
+        logger.info("Starting Discovery & Scan Cycle")
         logger.info("=" * 60)
         
         # Check backend connectivity
@@ -60,25 +64,48 @@ class NetSentryAgent:
             logger.warning("⚠️ Backend is not reachable. Will retry next cycle.")
             return
         
-        # Discover network
+        # 1. Discover network devices
         network = self.discovery.discover_network()
         if not network:
             logger.error("❌ Could not discover network configuration")
             return
         
-        # Perform ARP scan
         devices = self.discovery.scan_network()
         
         if not devices:
             logger.info("ℹ️ No devices found on network")
             return
         
-        # Ingest devices to backend
+        self.discovered_devices = devices
+        logger.info(f"📱 Found {len(devices)} devices")
+        
+        # 2. Scan ports on each device
+        all_port_scans = []
+        device_ids = {}  # Map IP to device ID from backend
+        
+        for device in devices:
+            ip = device.get('ip_address')
+            logger.info(f"\n🔍 Scanning ports on {ip}...")
+            
+            # Scan ports
+            scanned_device = self.scanner.scan_device(device)
+            
+            # Store port scan results
+            if scanned_device.get('port_scans'):
+                all_port_scans.extend(scanned_device['port_scans'])
+                open_count = len([p for p in scanned_device['port_scans'] if p['status'] == 'OPEN'])
+                logger.info(f"  Found {open_count} open ports on {ip}")
+        
+        # 3. Ingest devices to backend
         self.api_client.ingest_devices(devices)
         
-        self.last_scan_time = datetime.utcnow()
+        # 4. Ingest port scans to backend
+        if all_port_scans:
+            self.api_client.ingest_port_scans(all_port_scans)
+        
+        self.last_scan_time = datetime.now(timezone.utc)
         logger.info("=" * 60)
-        logger.info("Discovery Cycle Complete")
+        logger.info("Discovery & Scan Cycle Complete")
         logger.info("=" * 60)
     
     def run(self):
@@ -99,7 +126,7 @@ class NetSentryAgent:
         print(f"📡 Backend URL: {AgentConfig.BACKEND_URL}")
         print(f"🔑 Agent API Key: {'*' * min(len(AgentConfig.AGENT_API_KEY), 8)}")
         print(f"⏱️  Scan Interval: {AgentConfig.SCAN_INTERVAL}s")
-        print(f"📊 Traffic Interval: {AgentConfig.TRAFFIC_INTERVAL}s")
+        print(f"🔌 Port Scan Timeout: {AgentConfig.PORT_SCAN_TIMEOUT}s")
         print(f"🌐 Network Interface: {AgentConfig.NETWORK_INTERFACE}")
         
         print("\n" + "=" * 60)
@@ -123,7 +150,8 @@ class NetSentryAgent:
                 break
             except Exception as e:
                 logger.error(f"❌ Error in scan cycle: {e}")
-                # Wait before retrying
+                import traceback
+                traceback.print_exc()
                 time.sleep(10)
         
         print("\n" + "=" * 60)
