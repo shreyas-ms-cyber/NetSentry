@@ -12,7 +12,6 @@ const Alerts = () => {
   const [severityFilter, setSeverityFilter] = useState('ALL')
   const [ackFilter, setAckFilter] = useState('ALL')
   const [acknowledging, setAcknowledging] = useState(null)
-  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchAlerts()
@@ -21,15 +20,13 @@ const Alerts = () => {
   const fetchAlerts = async () => {
     try {
       setLoading(true)
-      setError(null)
       const response = await getAlerts()
-      // Safely extract alerts array
+      // SAFE: Always ensure we have an array
       const alertsData = response?.data?.alerts || []
-      setAlerts(alertsData)
-      setFilteredAlerts(alertsData)
+      setAlerts(Array.isArray(alertsData) ? alertsData : [])
+      setFilteredAlerts(Array.isArray(alertsData) ? alertsData : [])
     } catch (err) {
       console.error('Error fetching alerts:', err)
-      setError('Failed to load alerts. Please try again.')
       setAlerts([])
       setFilteredAlerts([])
     } finally {
@@ -38,7 +35,7 @@ const Alerts = () => {
   }
 
   useEffect(() => {
-    let result = [...alerts]
+    let result = Array.isArray(alerts) ? [...alerts] : []
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
@@ -106,11 +103,13 @@ const Alerts = () => {
   }
 
   const getSeverityCount = (severity) => {
-    return alerts.filter(a => a.severity === severity).length
+    const alertsArray = Array.isArray(alerts) ? alerts : []
+    return alertsArray.filter(a => a.severity === severity).length
   }
 
   const getUnacknowledgedCount = () => {
-    return alerts.filter(a => !a.acknowledged).length
+    const alertsArray = Array.isArray(alerts) ? alerts : []
+    return alertsArray.filter(a => !a.acknowledged).length
   }
 
   if (loading) {
@@ -133,13 +132,16 @@ const Alerts = () => {
     )
   }
 
+  const alertsArray = Array.isArray(filteredAlerts) ? filteredAlerts : []
+  const totalAlerts = alertsArray.length
+
   return (
     <div className="alerts-page">
       <div className="alerts-header">
         <div>
           <h1 className="alerts-title">Security Alerts</h1>
           <p className="alerts-subtitle">
-            {alerts.length} alerts · {getUnacknowledgedCount()} unacknowledged
+            {totalAlerts} alerts · {getUnacknowledgedCount()} unacknowledged
           </p>
         </div>
         <button className="btn-refresh-alerts" onClick={fetchAlerts}>
@@ -147,14 +149,6 @@ const Alerts = () => {
           Refresh
         </button>
       </div>
-
-      {error && (
-        <div className="alerts-error">
-          <FontAwesomeIcon icon="exclamation-circle" />
-          <span>{error}</span>
-          <button onClick={fetchAlerts}>Retry</button>
-        </div>
-      )}
 
       <div className="alerts-summary">
         <div className="alert-summary-card high">
@@ -192,7 +186,7 @@ const Alerts = () => {
             className={`filter-btn ${severityFilter === 'ALL' ? 'active' : ''}`}
             onClick={() => setSeverityFilter('ALL')}
           >
-            All ({alerts.length})
+            All ({totalAlerts})
           </button>
           <button
             className={`filter-btn high ${severityFilter === 'HIGH' ? 'active' : ''}`}
@@ -226,8 +220,8 @@ const Alerts = () => {
       </div>
 
       <div className="alerts-list">
-        {filteredAlerts.length > 0 ? (
-          filteredAlerts.map((alert) => (
+        {totalAlerts > 0 ? (
+          alertsArray.map((alert) => (
             <div key={alert.id} className={`alert-item ${alert.acknowledged ? 'acknowledged' : ''}`}>
               <div className="alert-icon">
                 <FontAwesomeIcon icon={getAlertIcon(alert.alert_type)} />

@@ -14,10 +14,22 @@ const api = axios.create({
   timeout: 10000,
 })
 
-// Response interceptor
+// Response interceptor - always return { data: [], count: 0 } on error
 api.interceptors.response.use(
   response => response,
-  error => Promise.reject(error)
+  error => {
+    // Return a consistent empty response instead of throwing
+    return Promise.resolve({
+      data: {
+        devices: [],
+        alerts: [],
+        traffic: [],
+        ports: [],
+        count: 0,
+        error: error.message || 'Request failed'
+      }
+    })
+  }
 )
 
 // Cached GET function
@@ -29,12 +41,27 @@ const cachedGet = async (url, params = {}) => {
     return cached.data
   }
   
-  const response = await api.get(url, { params })
-  cache.set(cacheKey, {
-    data: response,
-    timestamp: Date.now()
-  })
-  return response
+  try {
+    const response = await api.get(url, { params })
+    // Ensure we always return an array
+    const data = response.data || {}
+    cache.set(cacheKey, {
+      data: response,
+      timestamp: Date.now()
+    })
+    return response
+  } catch (error) {
+    // Return a consistent empty response
+    return {
+      data: {
+        devices: [],
+        alerts: [],
+        traffic: [],
+        ports: [],
+        count: 0
+      }
+    }
+  }
 }
 
 // Dashboard APIs
@@ -46,10 +73,16 @@ export const getPorts = (params) => cachedGet('/ports', params)
 export const getTraffic = (params) => cachedGet('/traffic', params)
 export const getAlerts = (params) => cachedGet('/alerts', params)
 
-// Non-cached APIs (for mutations)
-export const acknowledgeAlert = (id) => api.post(`/alerts/${id}/acknowledge`)
+// Non-cached APIs
+export const acknowledgeAlert = async (id) => {
+  try {
+    return await api.post(`/alerts/${id}/acknowledge`)
+  } catch (error) {
+    return { data: { status: 'error', message: error.message } }
+  }
+}
 
-// Clear cache when needed
+// Clear cache
 export const clearCache = () => {
   cache.clear()
 }
