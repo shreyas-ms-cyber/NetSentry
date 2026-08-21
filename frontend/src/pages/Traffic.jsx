@@ -18,10 +18,6 @@ const Traffic = () => {
     totalBandwidth: 0
   })
 
-  useEffect(() => {
-    fetchTraffic()
-  }, [])
-
   const fetchTraffic = async () => {
     try {
       setLoading(true)
@@ -46,8 +42,13 @@ const Traffic = () => {
     }
   }
 
+  useEffect(() => {
+    fetchTraffic()
+  }, [])
+
   return (
     <div className="traffic-page">
+      {/* Header */}
       <div className="traffic-header">
         <div>
           <h1 className="traffic-title">Network Traffic</h1>
@@ -59,6 +60,7 @@ const Traffic = () => {
         </button>
       </div>
 
+      {/* Stats Cards */}
       <div className="traffic-stats">
         <div className="traffic-stat-card">
           <span className="stat-label">Total Packets</span>
@@ -78,6 +80,7 @@ const Traffic = () => {
         </div>
       </div>
 
+      {/* Charts */}
       <div className="traffic-charts">
         <div className="traffic-chart-card full-width">
           <div className="chart-card-header">
