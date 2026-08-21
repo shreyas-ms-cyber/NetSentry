@@ -5,14 +5,13 @@ NetSentry Backend Application
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
+
+# Import db from extensions (the single instance)
+from app.extensions import db
 
 # Load environment variables
 load_dotenv()
-
-# Initialize extensions
-db = SQLAlchemy()
 
 def create_app():
     """Application factory pattern"""
@@ -35,8 +34,11 @@ def create_app():
     cors_origin = os.environ.get('CORS_ORIGIN', 'http://localhost:5173')
     CORS(app, origins=[cors_origin])
     
-    # Initialize extensions with app
+    # Initialize db with app
     db.init_app(app)
+    
+    # Import models (after db is initialized)
+    from app.models import Device, PortScan, TrafficStat, Alert
     
     # Create tables
     with app.app_context():

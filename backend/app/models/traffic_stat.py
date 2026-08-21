@@ -2,25 +2,23 @@
 TrafficStat Model - Represents network traffic statistics
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app.extensions import db
 
 class TrafficStat(db.Model):
     __tablename__ = 'traffic_stats'
     
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     packets_per_sec = db.Column(db.Float)
     bandwidth_bytes = db.Column(db.Float)
-    protocol_breakdown = db.Column(db.JSON)  # JSON: {tcp: 45, udp: 30, icmp: 15, other: 10}
+    protocol_breakdown = db.Column(db.JSON)
     
-    # Index for fast time-series queries
     __table_args__ = (
         db.Index('idx_timestamp', 'timestamp'),
     )
     
     def to_dict(self):
-        """Convert traffic stat to dictionary for API responses"""
         return {
             'id': self.id,
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,

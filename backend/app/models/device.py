@@ -2,7 +2,7 @@
 Device Model - Represents network devices discovered on the local network
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app.extensions import db
 
 class Device(db.Model):
@@ -13,8 +13,8 @@ class Device(db.Model):
     mac_address = db.Column(db.String(17), nullable=False, index=True)
     vendor = db.Column(db.String(100))
     hostname = db.Column(db.String(255))
-    first_seen = db.Column(db.DateTime, default=datetime.utcnow)
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    first_seen = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    last_seen = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     status = db.Column(db.String(20), default='ONLINE')
     
     # Relationships
