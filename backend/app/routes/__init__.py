@@ -128,3 +128,16 @@ def dashboard_summary():
         'latest_traffic': latest_traffic.to_dict() if latest_traffic else None,
         'unacknowledged_alerts': unacknowledged_alerts
     })
+
+# Alert acknowledgment endpoint
+@api_bp.route('/alerts/<int:alert_id>/acknowledge', methods=['POST'])
+def acknowledge_alert(alert_id):
+    """Acknowledge an alert"""
+    alert = Alert.query.get_or_404(alert_id)
+    alert.acknowledged = True
+    db.session.commit()
+    return jsonify({
+        'status': 'success',
+        'message': 'Alert acknowledged',
+        'alert': alert.to_dict()
+    })

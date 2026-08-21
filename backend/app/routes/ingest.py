@@ -5,11 +5,13 @@ Ingestion Routes - Protected by X-Agent-Key
 from flask import request, jsonify
 from app.extensions import db
 from app.routes import api_bp
-from app.models import Device, PortScan, TrafficStat
+from app.models import Device, PortScan, TrafficStat, Alert
+from app.services.alert_service import AlertService
 from datetime import datetime, timezone
 import logging
 
 logger = logging.getLogger(__name__)
+alert_service = AlertService()
 
 @api_bp.route('/devices/ingest', methods=['POST'])
 def ingest_devices():
@@ -23,6 +25,7 @@ def ingest_devices():
     created_count = 0
     updated_count = 0
     errors = []
+    alerts_generated = []
     
     for device_data in devices_data:
         ip = device_data.get('ip_address')
@@ -33,16 +36,35 @@ def ingest_devices():
             continue
         
         existing = Device.query.filter_by(ip_address=ip).first()
+        is_new = False
         
         if existing:
+            # Check if device was offline and is now online
+            was_offline = existing.status == 'OFFLINE'
+            
             existing.last_seen = datetime.now(timezone.utc)
             existing.status = 'ONLINE'
             if device_data.get('hostname'):
                 existing.hostname = device_data.get('hostname')
             if device_data.get('vendor') and device_data.get('vendor') != 'Unknown Vendor':
                 existing.vendor = device_data.get('vendor')
+            
+            # If device was offline, generate online alert
+            if was_offline:
+                alert = Alert(
+                    alert_type='DEVICE_ONLINE',
+                    device_id=existing.id,
+                    description=f"Device is back online: {ip} ({existing.hostname or 'Unknown'})",
+                    severity='LOW',
+                    timestamp=datetime.now(timezone.utc)
+                )
+                db.session.add(alert)
+                alerts_generated.append(alert)
+                logger.info(f"🔔 Device Online Alert: {ip}")
+            
             updated_count += 1
         else:
+            # New device
             device = Device(
                 ip_address=ip,
                 mac_address=mac,
@@ -53,8 +75,64 @@ def ingest_devices():
                 last_seen=datetime.now(timezone.utc)
             )
             db.session.add(device)
+            db.session.flush()  # Get the device ID
+            
+            # Generate new device alert
+            alert = Alert(
+                alert_type='NEW_DEVICE',
+                device_id=device.id,
+                description=f"New device joined the network: {ip} ({device.hostname or 'Unknown'})",
+                severity='LOW',
+                timestamp=datetime.now(timezone.utc)
+            )
+            db.session.add(alert)
+            alerts_generated.append(alert)
+            logger.info(f"🔔 New Device Alert: {ip}")
+            
             created_count += 1
+            is_new = True
+        
+        # Check for new open ports if port_scans provided
+        if device_data.get('port_scans'):
+            for scan in device_data['port_scans']:
+                if scan.get('status') != 'OPEN':
+                    continue
+                
+                port = scan.get('port')
+                protocol = scan.get('protocol', 'TCP')
+                service = scan.get('service')
+                
+                # Check if this port was previously open
+                previous_open = PortScan.query.filter_by(
+                    device_id=existing.id if existing else device.id,
+                    port=port,
+                    protocol=protocol,
+                    status='OPEN'
+                ).first()
+                
+                if not previous_open and existing:  # Only alert for existing devices (new devices will have their own alert)
+                    # Check if alert already exists
+                    existing_alert = Alert.query.filter_by(
+                        device_id=existing.id,
+                        alert_type='NEW_OPEN_PORT'
+                    ).filter(
+                        Alert.description.contains(f"port {port}/{protocol}")
+                    ).first()
+                    
+                    if not existing_alert:
+                        service_text = f" - {service}" if service else ""
+                        alert = Alert(
+                            alert_type='NEW_OPEN_PORT',
+                            device_id=existing.id,
+                            description=f"New open port detected: {ip}:{port}/{protocol}{service_text}",
+                            severity='MEDIUM',
+                            timestamp=datetime.now(timezone.utc)
+                        )
+                        db.session.add(alert)
+                        alerts_generated.append(alert)
+                        logger.info(f"🔔 New Open Port Alert: {ip}:{port}/{protocol}")
     
+    # Commit all changes
     try:
         db.session.commit()
     except Exception as e:
@@ -62,11 +140,15 @@ def ingest_devices():
         logger.error(f"Device ingestion error: {e}")
         return jsonify({'error': f'Database error: {str(e)}'}), 500
     
+    # Check for offline devices (after all updates)
+    offline_alerts = alert_service.check_device_offline()
+    
     return jsonify({
         'status': 'success',
         'created': created_count,
         'updated': updated_count,
         'errors': errors,
+        'alerts_generated': len(alerts_generated) + len(offline_alerts),
         'total': len(devices_data)
     }), 200
 
@@ -82,6 +164,7 @@ def ingest_port_scans():
     port_scans_data = data['port_scans']
     created_count = 0
     errors = []
+    alerts_generated = []
     
     for scan_data in port_scans_data:
         try:
@@ -100,6 +183,7 @@ def ingest_port_scans():
             port = scan_data.get('port')
             protocol = scan_data.get('protocol', 'TCP')
             status = scan_data.get('status', 'CLOSED')
+            service = scan_data.get('service')
             scanned_at_str = scan_data.get('scanned_at')
             
             if not port:
@@ -114,6 +198,18 @@ def ingest_port_scans():
             else:
                 scanned_at = datetime.now(timezone.utc)
             
+            # Check if this is a new open port
+            is_new_open = False
+            if status == 'OPEN':
+                previous_open = PortScan.query.filter_by(
+                    device_id=device.id,
+                    port=port,
+                    protocol=protocol,
+                    status='OPEN'
+                ).first()
+                is_new_open = not previous_open
+            
+            # Check existing scan
             existing = PortScan.query.filter_by(
                 device_id=device.id,
                 port=port,
@@ -133,6 +229,29 @@ def ingest_port_scans():
                 )
                 db.session.add(port_scan)
             
+            # Generate alert for new open port
+            if is_new_open:
+                # Check if alert already exists
+                existing_alert = Alert.query.filter_by(
+                    device_id=device.id,
+                    alert_type='NEW_OPEN_PORT'
+                ).filter(
+                    Alert.description.contains(f"port {port}/{protocol}")
+                ).first()
+                
+                if not existing_alert:
+                    service_text = f" - {service}" if service else ""
+                    alert = Alert(
+                        alert_type='NEW_OPEN_PORT',
+                        device_id=device.id,
+                        description=f"New open port detected: {device_ip}:{port}/{protocol}{service_text}",
+                        severity='MEDIUM',
+                        timestamp=datetime.now(timezone.utc)
+                    )
+                    db.session.add(alert)
+                    alerts_generated.append(alert)
+                    logger.info(f"🔔 New Open Port Alert: {device_ip}:{port}/{protocol}")
+            
             created_count += 1
             
         except Exception as e:
@@ -151,6 +270,7 @@ def ingest_port_scans():
     return jsonify({
         'status': 'success',
         'created': created_count,
+        'alerts_generated': len(alerts_generated),
         'errors': errors,
         'total': len(port_scans_data)
     }), 200
@@ -165,13 +285,13 @@ def ingest_traffic():
         return jsonify({'error': 'Invalid data format'}), 400
     
     try:
-        # Extract traffic data
         timestamp_str = data.get('timestamp')
         packets_per_sec = data.get('packets_per_sec', 0)
         bandwidth_bytes = data.get('bandwidth_bytes', 0)
         protocol_breakdown = data.get('protocol_breakdown', {})
+        total_packets = data.get('total_packets', 0)
+        top_talkers = data.get('top_talkers', [])
         
-        # Parse timestamp
         if timestamp_str:
             try:
                 timestamp = datetime.fromisoformat(timestamp_str)
@@ -180,7 +300,6 @@ def ingest_traffic():
         else:
             timestamp = datetime.now(timezone.utc)
         
-        # Create traffic stat
         traffic_stat = TrafficStat(
             timestamp=timestamp,
             packets_per_sec=packets_per_sec,
