@@ -20,7 +20,15 @@ def create_app():
     
     # Configuration - Use PostgreSQL or SQLite fallback
     database_url = os.environ.get('DATABASE_URL')
-    if not database_url:
+    
+    if database_url and 'postgresql' in database_url:
+        # For PostgreSQL with psycopg 3.x, use the correct driver
+        # Replace postgresql:// with postgresql+psycopg://
+        if not database_url.startswith('postgresql+psycopg'):
+            # Convert to use psycopg driver
+            database_url = database_url.replace('postgresql://', 'postgresql+psycopg://')
+        print(f"📊 Using PostgreSQL with psycopg driver")
+    elif not database_url:
         database_url = 'sqlite:///netsentry.db'
         print("⚠️  DATABASE_URL not set, using SQLite")
     
