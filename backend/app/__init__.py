@@ -8,6 +8,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
 # Initialize db
@@ -16,7 +17,7 @@ db = SQLAlchemy()
 def create_app():
     app = Flask(__name__)
     
-    # Get database URL
+    # Get database URL from environment
     database_url = os.environ.get('DATABASE_URL')
     
     if database_url and 'postgresql' in database_url:
@@ -24,7 +25,7 @@ def create_app():
         if not database_url.startswith('postgresql+psycopg'):
             database_url = database_url.replace('postgresql://', 'postgresql+psycopg://')
         print(f"📊 Using PostgreSQL with psycopg v3 driver")
-    elif not database_url:
+    else:
         database_url = 'sqlite:///netsentry.db'
         print("⚠️  DATABASE_URL not set, using SQLite")
     
@@ -38,24 +39,19 @@ def create_app():
             'connect_args': {'check_same_thread': False}
         }
     
-    # CORS
-    cors_origin = os.environ.get('CORS_ORIGIN', '*')
-    CORS(app, 
-         resources={r"/*": {"origins": cors_origin if cors_origin != '*' else '*'}},
-         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-         allow_headers=['Content-Type', 'X-Agent-Key']
-    )
+    # CORS - Allow all origins
+    CORS(app, resources={r"/*": {"origins": "*"}})
     
     # Initialize db with app
     db.init_app(app)
     
-    # Import models and create tables
+    # Create tables
     with app.app_context():
         from app.models import Device, PortScan, TrafficStat, Alert
         db.create_all()
         print("✅ Database tables created successfully")
     
-    # Import and register blueprints
+    # Register blueprints
     from app.routes import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
     
