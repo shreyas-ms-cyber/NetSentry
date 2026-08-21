@@ -10,14 +10,30 @@ const api = axios.create({
   timeout: 10000,
 })
 
+// Response interceptor to handle errors
+api.interceptors.response.use(
+  response => response,
+  error => {
+    // Return a consistent error response
+    return Promise.reject(error)
+  }
+)
+
 // Dashboard APIs
 export const getDashboardSummary = () => api.get('/dashboard/summary')
+
 export const getDevices = () => api.get('/devices')
+
 export const getDevice = (id) => api.get(`/devices/${id}`)
+
 export const getDevicePorts = (id) => api.get(`/devices/${id}/ports`)
+
 export const getPorts = (params) => api.get('/ports', { params })
+
 export const getTraffic = (params) => api.get('/traffic', { params })
+
 export const getAlerts = (params) => api.get('/alerts', { params })
+
 export const acknowledgeAlert = (id) => api.post(`/alerts/${id}/acknowledge`)
 
 export default api

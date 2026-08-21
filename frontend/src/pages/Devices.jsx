@@ -11,6 +11,7 @@ const Devices = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [sortBy, setSortBy] = useState('lastSeen')
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchDevices()
@@ -19,11 +20,17 @@ const Devices = () => {
   const fetchDevices = async () => {
     try {
       setLoading(true)
+      setError(null)
       const response = await getDevices()
-      setDevices(response.data.devices || [])
-      setFilteredDevices(response.data.devices || [])
+      // Safely extract devices array
+      const devicesData = response?.data?.devices || []
+      setDevices(devicesData)
+      setFilteredDevices(devicesData)
     } catch (err) {
       console.error('Error fetching devices:', err)
+      setError('Failed to load devices. Please try again.')
+      setDevices([])
+      setFilteredDevices([])
     } finally {
       setLoading(false)
     }
@@ -32,7 +39,6 @@ const Devices = () => {
   useEffect(() => {
     let result = [...devices]
 
-    // Search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       result = result.filter(d =>
@@ -43,12 +49,10 @@ const Devices = () => {
       )
     }
 
-    // Status filter
     if (statusFilter !== 'ALL') {
       result = result.filter(d => d.status === statusFilter)
     }
 
-    // Sort
     result.sort((a, b) => {
       if (sortBy === 'lastSeen') {
         return new Date(b.last_seen) - new Date(a.last_seen)
@@ -57,7 +61,7 @@ const Devices = () => {
         return new Date(b.first_seen) - new Date(a.first_seen)
       }
       if (sortBy === 'ip') {
-        return a.ip_address.localeCompare(b.ip_address)
+        return a.ip_address?.localeCompare(b.ip_address || '') || 0
       }
       return 0
     })
@@ -99,7 +103,6 @@ const Devices = () => {
 
   return (
     <div className="devices-page">
-      {/* Header */}
       <div className="devices-header">
         <div>
           <h1 className="devices-title">Active Devices</h1>
@@ -113,7 +116,14 @@ const Devices = () => {
         </button>
       </div>
 
-      {/* Controls */}
+      {error && (
+        <div className="devices-error">
+          <FontAwesomeIcon icon="exclamation-circle" />
+          <span>{error}</span>
+          <button onClick={fetchDevices}>Retry</button>
+        </div>
+      )}
+
       <div className="devices-controls">
         <div className="search-wrapper">
           <FontAwesomeIcon icon="magnifying-glass" className="search-icon" />
@@ -159,7 +169,6 @@ const Devices = () => {
         </div>
       </div>
 
-      {/* Device Table - Desktop */}
       <div className="devices-table-wrapper">
         <table className="devices-table">
           <thead>
@@ -179,8 +188,8 @@ const Devices = () => {
               filteredDevices.map((device) => (
                 <tr key={device.id} className="device-row">
                   <td>{getStatusBadge(device.status)}</td>
-                  <td className="mono">{device.ip_address}</td>
-                  <td className="mono">{device.mac_address}</td>
+                  <td className="mono">{device.ip_address || '—'}</td>
+                  <td className="mono">{device.mac_address || '—'}</td>
                   <td>{device.hostname || '—'}</td>
                   <td>{device.vendor || 'Unknown'}</td>
                   <td className="mono">
@@ -212,7 +221,6 @@ const Devices = () => {
         </table>
       </div>
 
-      {/* Device Cards - Mobile */}
       <div className="device-cards">
         {filteredDevices.map((device) => (
           <div key={device.id} className="device-card">

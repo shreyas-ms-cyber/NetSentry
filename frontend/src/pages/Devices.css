@@ -488,3 +488,36 @@
     flex-direction: column;
   }
 }
+
+/* Error State */
+.devices-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: rgba(255, 59, 92, 0.08);
+  border: 1px solid rgba(255, 59, 92, 0.15);
+  border-radius: var(--radius-md);
+  color: var(--danger);
+}
+
+.devices-error svg {
+  font-size: 18px;
+}
+
+.devices-error button {
+  background: rgba(255, 59, 92, 0.1);
+  border: 1px solid rgba(255, 59, 92, 0.15);
+  border-radius: 6px;
+  padding: 4px 14px;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.devices-error button:hover {
+  background: rgba(255, 59, 92, 0.2);
+}
