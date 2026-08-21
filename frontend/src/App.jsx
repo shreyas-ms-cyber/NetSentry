@@ -11,7 +11,7 @@ import {
   faSync, faPlusCircle, faPowerOff, faCheckCircle,
   faEllipsis, faArrowLeft, faEye, faRotate,
   faShield, faDatabase, faSatelliteDish,
-  faSearch, faCloudUpload, faSpinner,
+  faSearch, faSpinner,
   faInfoCircle, faExclamationCircle, faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons'
 import { 
@@ -30,7 +30,7 @@ library.add(
   faSync, faPlusCircle, faPowerOff, faCheckCircle,
   faEllipsis, faArrowLeft, faEye, faRotate,
   faShield, faDatabase, faSatelliteDish,
-  faSearch, faCloudUpload, faSpinner,
+  faSearch, faSpinner,
   faInfoCircle, faExclamationCircle, faExclamationTriangle,
   faGithub, faLinkedin
 )

@@ -23,9 +23,7 @@ def create_app():
     
     if database_url and 'postgresql' in database_url:
         # For PostgreSQL with psycopg 3.x, use the correct driver
-        # Replace postgresql:// with postgresql+psycopg://
         if not database_url.startswith('postgresql+psycopg'):
-            # Convert to use psycopg driver
             database_url = database_url.replace('postgresql://', 'postgresql+psycopg://')
         print(f"📊 Using PostgreSQL with psycopg driver")
     elif not database_url:
@@ -43,9 +41,13 @@ def create_app():
             'connect_args': {'check_same_thread': False}
         }
     
-    # CORS
+    # CORS - Allow all origins for development
     cors_origin = os.environ.get('CORS_ORIGIN', '*')
-    CORS(app, origins=[cors_origin] if cors_origin != '*' else '*')
+    CORS(app, 
+         origins=cors_origin if cors_origin != '*' else '*',
+         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+         allow_headers=['Content-Type', 'X-Agent-Key']
+    )
     
     # Initialize extensions with app
     db.init_app(app)
