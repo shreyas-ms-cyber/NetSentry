@@ -12,6 +12,7 @@ const Alerts = () => {
   const [severityFilter, setSeverityFilter] = useState('ALL')
   const [ackFilter, setAckFilter] = useState('ALL')
   const [acknowledging, setAcknowledging] = useState(null)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchAlerts()
@@ -20,11 +21,17 @@ const Alerts = () => {
   const fetchAlerts = async () => {
     try {
       setLoading(true)
+      setError(null)
       const response = await getAlerts()
-      setAlerts(response.data.alerts || [])
-      setFilteredAlerts(response.data.alerts || [])
+      // Safely extract alerts array
+      const alertsData = response?.data?.alerts || []
+      setAlerts(alertsData)
+      setFilteredAlerts(alertsData)
     } catch (err) {
       console.error('Error fetching alerts:', err)
+      setError('Failed to load alerts. Please try again.')
+      setAlerts([])
+      setFilteredAlerts([])
     } finally {
       setLoading(false)
     }
@@ -132,7 +139,7 @@ const Alerts = () => {
         <div>
           <h1 className="alerts-title">Security Alerts</h1>
           <p className="alerts-subtitle">
-            {filteredAlerts.length} alerts · {getUnacknowledgedCount()} unacknowledged
+            {alerts.length} alerts · {getUnacknowledgedCount()} unacknowledged
           </p>
         </div>
         <button className="btn-refresh-alerts" onClick={fetchAlerts}>
@@ -140,6 +147,14 @@ const Alerts = () => {
           Refresh
         </button>
       </div>
+
+      {error && (
+        <div className="alerts-error">
+          <FontAwesomeIcon icon="exclamation-circle" />
+          <span>{error}</span>
+          <button onClick={fetchAlerts}>Retry</button>
+        </div>
+      )}
 
       <div className="alerts-summary">
         <div className="alert-summary-card high">

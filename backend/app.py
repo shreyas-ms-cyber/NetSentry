@@ -1,5 +1,5 @@
 """
-NetSentry Backend - Complete Working Version with Schema Fix
+NetSentry Backend - Complete Working Version
 """
 
 import os
@@ -127,14 +127,10 @@ def create_app():
                 'acknowledged': self.acknowledged
             }
     
-    # Drop and recreate tables with correct schema
+    # Create tables (with drop if needed)
     with app.app_context():
-        # Drop existing tables
-        db.drop_all()
-        print("✅ Dropped existing tables")
-        # Create new tables
         db.create_all()
-        print("✅ Created new tables with correct schema")
+        print("✅ Database tables created")
     
     # ============ ROUTES ============
     
@@ -149,7 +145,7 @@ def create_app():
             count = Device.query.count()
             return jsonify({'message': 'Database working!', 'device_count': count})
         except Exception as e:
-            return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+            return jsonify({'error': str(e)}), 500
     
     @app.route('/api/dashboard/summary')
     def dashboard_summary():
@@ -170,7 +166,7 @@ def create_app():
                 'unacknowledged_alerts': unacknowledged_alerts
             })
         except Exception as e:
-            return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+            return jsonify({'error': str(e)}), 500
     
     @app.route('/api/devices')
     def get_devices():
@@ -226,12 +222,15 @@ def create_app():
             if not acknowledged:
                 query = query.filter_by(acknowledged=False)
             alerts = query.order_by(Alert.timestamp.desc()).limit(100).all()
+            alerts_list = [a.to_dict() for a in alerts]
             return jsonify({
-                'alerts': [a.to_dict() for a in alerts],
-                'count': len(alerts)
+                'alerts': alerts_list,
+                'count': len(alerts_list)
             })
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            print(f"Error in /api/alerts: {str(e)}")
+            print(traceback.format_exc())
+            return jsonify({'error': str(e), 'alerts': [], 'count': 0}), 500
     
     @app.route('/api/devices/ingest', methods=['POST'])
     def ingest_devices():
