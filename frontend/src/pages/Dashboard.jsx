@@ -39,8 +39,8 @@ const Dashboard = () => {
     { label: 'Online Devices', value: summary?.online_devices ?? '—', icon: 'check-circle', color: '#00D26A' },
     { label: 'Offline Devices', value: summary?.offline_devices ?? '—', icon: 'power-off', color: '#FF3B5C' },
     { label: 'Open Ports', value: summary?.open_ports ?? '—', icon: 'plug', color: '#FFC857' },
-    { label: 'Packets/sec', value: summary?.latest_traffic?.packets_per_sec?.toFixed(1) ?? '—', icon: 'arrows-up-down', color: '#4DA3FF' },
-    { label: 'Bandwidth', value: summary?.latest_traffic?.bandwidth_mbps?.toFixed(1) ?? '—', icon: 'gauge', color: '#00D26A' },
+    { label: 'Packets/sec', value: summary?.latest_traffic?.packets_per_sec?.toFixed(1) ?? '—', icon: 'arrow-up', color: '#4DA3FF' },
+    { label: 'Bandwidth', value: summary?.latest_traffic?.bandwidth_mbps?.toFixed(1) ?? '—', icon: 'gauge-high', color: '#00D26A' },
   ]
 
   return (

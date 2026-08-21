@@ -22,7 +22,6 @@ def create_app():
     database_url = os.environ.get('DATABASE_URL')
     
     if database_url and 'postgresql' in database_url:
-        # For PostgreSQL with psycopg 3.x, use the correct driver
         if not database_url.startswith('postgresql+psycopg'):
             database_url = database_url.replace('postgresql://', 'postgresql+psycopg://')
         print(f"📊 Using PostgreSQL with psycopg driver")
@@ -35,36 +34,30 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # SQLite specific settings
     if 'sqlite' in database_url:
         app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
             'connect_args': {'check_same_thread': False}
         }
     
-    # CORS - Allow all origins for development
-    cors_origin = os.environ.get('CORS_ORIGIN', '*')
+    # CORS - Allow all origins for development (update for production)
     CORS(app, 
-         origins=cors_origin if cors_origin != '*' else '*',
+         resources={r"/*": {"origins": "*"}},
          methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-         allow_headers=['Content-Type', 'X-Agent-Key']
+         allow_headers=['Content-Type', 'X-Agent-Key', 'Authorization'],
+         supports_credentials=True
     )
     
-    # Initialize extensions with app
     db.init_app(app)
     
-    # Create tables
     with app.app_context():
         db.create_all()
         print("✅ Database tables created successfully")
     
-    # Import models
     from app.models import Device, PortScan, TrafficStat, Alert
     
-    # Import and register blueprints
     from app.routes import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
     
-    # Health check endpoint
     @app.route('/health')
     def health():
         return jsonify({'status': 'ok', 'service': 'NetSentry Backend', 'version': '1.0.0'})
