@@ -3,6 +3,8 @@ NetSentry Backend Application
 """
 
 import os
+import sys
+import traceback
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -47,13 +49,22 @@ def create_app():
     
     # Create tables
     with app.app_context():
-        from app.models import Device, PortScan, TrafficStat, Alert
-        db.create_all()
-        print("✅ Database tables created successfully")
+        try:
+            from app.models import Device, PortScan, TrafficStat, Alert
+            db.create_all()
+            print("✅ Database tables created successfully")
+        except Exception as e:
+            print(f"❌ Error creating tables: {e}")
+            print(traceback.format_exc())
     
     # Register blueprints
-    from app.routes import api_bp
-    app.register_blueprint(api_bp, url_prefix='/api')
+    try:
+        from app.routes import api_bp
+        app.register_blueprint(api_bp, url_prefix='/api')
+        print("✅ Routes registered successfully")
+    except Exception as e:
+        print(f"❌ Error registering routes: {e}")
+        print(traceback.format_exc())
     
     @app.route('/health')
     def health():
@@ -66,5 +77,15 @@ def create_app():
             'version': '1.0.0',
             'status': 'running'
         })
+    
+    # Add a test endpoint to debug
+    @app.route('/test')
+    def test():
+        try:
+            from app.models import Device
+            count = Device.query.count()
+            return jsonify({'message': 'Database working', 'device_count': count})
+        except Exception as e:
+            return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
     
     return app
