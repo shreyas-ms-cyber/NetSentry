@@ -1,0 +1,19 @@
+{
+  "name": "netsentry-backend",
+  "runtime": "python",
+  "plan": "free",
+  "region": "oregon",
+  "buildCommand": "pip install -r requirements.txt",
+  "startCommand": "gunicorn wsgi:app",
+  "envVars": {
+    "DATABASE_URL": {
+      "value": "postgresql://neondb_owner:npg_LAkZPgOJ73Ve@ep-shiny-lab-ayqht9jl-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    },
+    "CORS_ORIGIN": {
+      "value": "https://netsentry-frontend.vercel.app"
+    },
+    "FLASK_ENV": {
+      "value": "production"
+    }
+  }
+}
