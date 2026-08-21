@@ -18,7 +18,8 @@ const Traffic = () => {
     try {
       setLoading(true)
       const response = await getTraffic({ limit: 100 })
-      const data = response.data || []
+      // Ensure data is always an array
+      const data = Array.isArray(response.data) ? response.data : []
       setTrafficData(data)
       
       if (data.length > 0) {
@@ -42,7 +43,26 @@ const Traffic = () => {
     fetchTraffic()
   }, [])
 
-  // Show loading state while fetching
+  // Safe function to get protocol breakdown with fallback
+  const getProtocolBreakdown = () => {
+    if (!latestTraffic) return {}
+    const breakdown = latestTraffic.protocol_breakdown || {}
+    // Ensure we have all protocol keys
+    return {
+      tcp: breakdown.tcp || 0,
+      udp: breakdown.udp || 0,
+      icmp: breakdown.icmp || 0,
+      other: breakdown.other || 0
+    }
+  }
+
+  // Safe function to get top talkers with fallback
+  const getTopTalkers = () => {
+    if (!latestTraffic) return []
+    return Array.isArray(latestTraffic.top_talkers) ? latestTraffic.top_talkers : []
+  }
+
+  // Show loading state
   if (loading) {
     return (
       <div className="traffic-page">
@@ -65,6 +85,10 @@ const Traffic = () => {
       </div>
     )
   }
+
+  const protocolBreakdown = getProtocolBreakdown()
+  const topTalkers = getTopTalkers()
+  const hasProtocolData = Object.values(protocolBreakdown).some(v => v > 0)
 
   return (
     <div className="traffic-page">
@@ -100,7 +124,7 @@ const Traffic = () => {
         </div>
       </div>
 
-      {/* Traffic Timeline - Simple Bar Chart */}
+      {/* Traffic Timeline */}
       <div className="traffic-charts">
         <div className="traffic-chart-card full-width">
           <div className="chart-card-header">
@@ -112,20 +136,24 @@ const Traffic = () => {
           <div className="chart-container">
             {trafficData.length > 0 ? (
               <div className="chart-bars-wrapper">
-                {trafficData.slice(0, 50).reverse().map((d, i) => (
-                  <div key={i} className="chart-bar-item">
-                    <div 
-                      className="chart-bar-fill" 
-                      style={{ 
-                        height: `${Math.max(5, (d.packets_per_sec || 0) / (Math.max(...trafficData.map(t => t.packets_per_sec || 0)) || 1) * 100)}%`,
-                        backgroundColor: `rgba(0, 229, 255, ${0.3 + (d.packets_per_sec || 0) / (Math.max(...trafficData.map(t => t.packets_per_sec || 0)) || 1) * 0.6})`
-                      }}
-                    />
-                    <span className="chart-bar-label">
-                      {new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                ))}
+                {trafficData.slice(0, 50).reverse().map((d, i) => {
+                  const maxPps = Math.max(...trafficData.map(t => t.packets_per_sec || 0), 1)
+                  const height = Math.max(5, ((d.packets_per_sec || 0) / maxPps) * 100)
+                  return (
+                    <div key={i} className="chart-bar-item">
+                      <div 
+                        className="chart-bar-fill" 
+                        style={{ 
+                          height: `${height}%`,
+                          backgroundColor: `rgba(0, 229, 255, ${0.3 + (height / 100) * 0.6})`
+                        }}
+                      />
+                      <span className="chart-bar-label">
+                        {new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
             ) : (
               <div className="chart-empty">
@@ -145,18 +173,18 @@ const Traffic = () => {
             </div>
           </div>
           <div className="protocol-list">
-            {latestTraffic?.protocol_breakdown && Object.keys(latestTraffic.protocol_breakdown).length > 0 ? (
-              Object.entries(latestTraffic.protocol_breakdown).map(([proto, value]) => (
+            {hasProtocolData ? (
+              Object.entries(protocolBreakdown).map(([proto, value]) => (
                 <div key={proto} className="protocol-item">
                   <span className="protocol-name">{proto.toUpperCase()}</span>
                   <div className="protocol-bar-track">
-                    <div className="protocol-bar-fill" style={{ width: `${value}%` }} />
+                    <div className="protocol-bar-fill" style={{ width: `${Math.max(1, value)}%` }} />
                   </div>
                   <span className="protocol-value">{value.toFixed(1)}%</span>
                 </div>
               ))
             ) : (
-              <div className="protocol-empty">No protocol data</div>
+              <div className="protocol-empty">No protocol data available</div>
             )}
           </div>
         </div>
@@ -170,23 +198,26 @@ const Traffic = () => {
             </div>
           </div>
           <div className="talkers-list">
-            {latestTraffic?.top_talkers && latestTraffic.top_talkers.length > 0 ? (
-              latestTraffic.top_talkers.slice(0, 5).map((talker, i) => (
-                <div key={i} className="talker-item">
-                  <div className="talker-info">
-                    <span className="talker-ip">{talker.ip}</span>
-                    <span className="talker-traffic">{talker.bytes_mb?.toFixed(1) || '0'} MB</span>
+            {topTalkers.length > 0 ? (
+              topTalkers.slice(0, 5).map((talker, i) => {
+                const maxBytes = topTalkers[0]?.bytes_mb || 1
+                return (
+                  <div key={i} className="talker-item">
+                    <div className="talker-info">
+                      <span className="talker-ip">{talker.ip || 'Unknown'}</span>
+                      <span className="talker-traffic">{talker.bytes_mb?.toFixed(1) || '0'} MB</span>
+                    </div>
+                    <div className="talker-bar-track">
+                      <div 
+                        className="talker-bar-fill" 
+                        style={{ 
+                          width: `${Math.min((talker.bytes_mb || 0) / maxBytes * 100, 100)}%` 
+                        }} 
+                      />
+                    </div>
                   </div>
-                  <div className="talker-bar-track">
-                    <div 
-                      className="talker-bar-fill" 
-                      style={{ 
-                        width: `${Math.min((talker.bytes_mb || 0) / (latestTraffic.top_talkers[0]?.bytes_mb || 1) * 100, 100)}%` 
-                      }} 
-                    />
-                  </div>
-                </div>
-              ))
+                )
+              })
             ) : (
               <div className="talkers-empty">No traffic data available</div>
             )}
