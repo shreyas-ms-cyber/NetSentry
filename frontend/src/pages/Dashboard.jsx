@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import PageContainer from '../components/layout/PageContainer'
 import { getDashboardSummary, getTraffic, getAlerts } from '../services/api'
@@ -11,12 +11,12 @@ const Dashboard = () => {
   const [alerts, setAlerts] = useState([])
   const [lastUpdated, setLastUpdated] = useState(null)
 
-  const fetchAllData = useCallback(async () => {
+  const fetchAllData = async () => {
     try {
       setLoading(true)
       const [summaryRes, trafficRes, alertsRes] = await Promise.all([
         getDashboardSummary(),
-        getTraffic({ limit: 30 }),
+        getTraffic({ limit: 50 }),
         getAlerts({ acknowledged: false })
       ])
       setSummary(summaryRes.data)
@@ -28,28 +28,28 @@ const Dashboard = () => {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }
 
   useEffect(() => {
     fetchAllData()
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchAllData, 30000)
-    return () => clearInterval(interval)
-  }, [fetchAllData])
+  }, [])
 
-  const stats = useMemo(() => [
+  const stats = [
     { label: 'Total Devices', value: summary?.total_devices ?? '—', icon: 'server', color: '#00E5FF' },
     { label: 'Online Devices', value: summary?.online_devices ?? '—', icon: 'check-circle', color: '#00D26A' },
     { label: 'Offline Devices', value: summary?.offline_devices ?? '—', icon: 'power-off', color: '#FF3B5C' },
     { label: 'Open Ports', value: summary?.open_ports ?? '—', icon: 'plug', color: '#FFC857' },
     { label: 'Packets/sec', value: summary?.latest_traffic?.packets_per_sec?.toFixed(1) ?? '—', icon: 'arrow-up', color: '#4DA3FF' },
     { label: 'Bandwidth', value: summary?.latest_traffic?.bandwidth_mbps?.toFixed(1) ?? '—', icon: 'gauge-high', color: '#00D26A' },
-  ], [summary])
+  ]
 
-  const latestTraffic = useMemo(() => summary?.latest_traffic || {}, [summary])
+  // Get protocol breakdown and top talkers from latest_traffic
+  const protocolBreakdown = summary?.latest_traffic?.protocol_breakdown || {}
+  const topTalkers = summary?.latest_traffic?.top_talkers || []
 
   return (
     <div className="dashboard">
+      {/* Header */}
       <div className="dashboard-header">
         <div className="dashboard-header-left">
           <h1 className="dashboard-title">Network Command Center</h1>
@@ -59,9 +59,7 @@ const Dashboard = () => {
           <div className="agent-health">
             <span className="status-dot online pulse"></span>
             <span className="agent-label">AGENT ONLINE</span>
-            <span className="agent-time">
-              {lastUpdated ? `${Math.floor((Date.now() - lastUpdated.getTime()) / 1000)}s ago` : '—'}
-            </span>
+            <span className="agent-time">Last sync {lastUpdated ? `${Math.floor((Date.now() - lastUpdated.getTime()) / 1000)}s ago` : '—'}</span>
           </div>
           <button className="btn-refresh" onClick={fetchAllData}>
             <FontAwesomeIcon icon="rotate" />
@@ -70,6 +68,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Stats Grid */}
       <div className="stats-grid">
         {stats.map((stat, index) => (
           <div key={index} className="stat-card">
@@ -86,6 +85,7 @@ const Dashboard = () => {
         ))}
       </div>
 
+      {/* Charts Grid */}
       <div className="charts-grid">
         <div className="chart-card full-width">
           <div className="chart-card-header">
@@ -102,26 +102,22 @@ const Dashboard = () => {
           </div>
           <div className="chart-placeholder">
             <div className="chart-metric">
-              <span className="metric-value">{latestTraffic?.packets_per_sec?.toFixed(0) || '—'}</span>
+              <span className="metric-value">{summary?.latest_traffic?.packets_per_sec?.toFixed(0) || '—'}</span>
               <span className="metric-label">Current pps</span>
             </div>
             <div className="chart-area">
               {trafficData.length > 0 ? (
                 <div className="chart-bars">
-                  {trafficData.slice(0, 30).reverse().map((d, i) => {
-                    const maxVal = Math.max(...trafficData.map(t => t.packets_per_sec || 0), 1)
-                    const height = Math.min((d.packets_per_sec || 0) / maxVal * 80 + 10, 90)
-                    return (
-                      <div
-                        key={i}
-                        className="chart-bar"
-                        style={{
-                          height: `${height}%`,
-                          backgroundColor: `rgba(0, 229, 255, ${0.2 + (d.packets_per_sec || 0) / maxVal * 0.6})`
-                        }}
-                      />
-                    )
-                  })}
+                  {trafficData.slice(0, 30).reverse().map((d, i) => (
+                    <div
+                      key={i}
+                      className="chart-bar"
+                      style={{
+                        height: `${Math.min((d.packets_per_sec || 0) / (Math.max(...trafficData.map(t => t.packets_per_sec || 0)) || 1) * 80 + 10, 90)}%`,
+                        backgroundColor: `rgba(0, 229, 255, ${0.2 + (d.packets_per_sec || 0) / (Math.max(...trafficData.map(t => t.packets_per_sec || 0)) || 1) * 0.6})`
+                      }}
+                    />
+                  ))}
                 </div>
               ) : (
                 <div className="chart-empty">
@@ -134,6 +130,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Bottom Grid */}
       <div className="bottom-grid">
         <div className="chart-card">
           <div className="chart-card-header">
@@ -141,8 +138,8 @@ const Dashboard = () => {
             <div className="chart-card-subtitle">Distribution</div>
           </div>
           <div className="protocol-breakdown">
-            {latestTraffic?.protocol_breakdown ? (
-              Object.entries(latestTraffic.protocol_breakdown).map(([proto, value]) => (
+            {Object.keys(protocolBreakdown).length > 0 ? (
+              Object.entries(protocolBreakdown).map(([proto, value]) => (
                 <div key={proto} className="protocol-item">
                   <span className="protocol-name">{proto.toUpperCase()}</span>
                   <div className="protocol-bar-track">
@@ -163,21 +160,18 @@ const Dashboard = () => {
             <div className="chart-card-subtitle">Traffic volume</div>
           </div>
           <div className="top-talkers">
-            {latestTraffic?.top_talkers?.length > 0 ? (
-              latestTraffic.top_talkers.slice(0, 5).map((talker, i) => {
-                const maxBytes = latestTraffic.top_talkers[0]?.bytes_mb || 1
-                return (
-                  <div key={i} className="talker-item">
-                    <div className="talker-info">
-                      <span className="talker-ip">{talker.ip}</span>
-                      <span className="talker-traffic">{talker.bytes_mb?.toFixed(1) || '0'} MB</span>
-                    </div>
-                    <div className="talker-bar-track">
-                      <div className="talker-bar-fill" style={{ width: `${Math.min((talker.bytes_mb || 0) / maxBytes * 100, 100)}%` }} />
-                    </div>
+            {topTalkers.length > 0 ? (
+              topTalkers.slice(0, 5).map((talker, i) => (
+                <div key={i} className="talker-item">
+                  <div className="talker-info">
+                    <span className="talker-ip">{talker.ip}</span>
+                    <span className="talker-traffic">{talker.bytes_mb?.toFixed(1) || '0'} MB</span>
                   </div>
-                )
-              })
+                  <div className="talker-bar-track">
+                    <div className="talker-bar-fill" style={{ width: `${Math.min((talker.bytes_mb || 0) / (topTalkers[0]?.bytes_mb || 1) * 100, 100)}%` }} />
+                  </div>
+                </div>
+              ))
             ) : (
               <div className="talkers-empty">No traffic data available</div>
             )}
