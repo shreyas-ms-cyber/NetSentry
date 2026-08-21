@@ -11,6 +11,7 @@ const About = () => {
       </div>
 
       <div className="about-grid">
+        {/* What is NetSentry */}
         <div className="about-card">
           <h2 className="about-card-title">What is NetSentry?</h2>
           <p className="about-card-text">
@@ -21,82 +22,84 @@ const About = () => {
           </p>
         </div>
 
+        {/* Key Features */}
         <div className="about-card">
-          <h2 className="about-card-title">Architecture</h2>
-          <div className="architecture-flow">
-            <div className="flow-item">
-              <span className="flow-icon">🖥️</span>
-              <span>Authorized Local Network</span>
+          <h2 className="about-card-title">Key Features</h2>
+          <div className="features-grid">
+            <div className="feature-item">
+              <span className="feature-icon">🔍</span>
+              <div>
+                <h4>Device Discovery</h4>
+                <p>Automatic ARP-based device detection</p>
+              </div>
             </div>
-            <div className="flow-arrow">↓</div>
-            <div className="flow-item">
-              <span className="flow-icon">🤖</span>
-              <span>NetSentry Local Agent</span>
-              <span className="flow-desc">ARP Discovery · Port Scanning · Packet Capture</span>
+            <div className="feature-item">
+              <span className="feature-icon">🔌</span>
+              <div>
+                <h4>Port Scanning</h4>
+                <p>Identify open ports and services</p>
+              </div>
             </div>
-            <div className="flow-arrow">↓</div>
-            <div className="flow-item">
-              <span className="flow-icon">🔒</span>
-              <span>HTTPS + X-Agent-Key</span>
+            <div className="feature-item">
+              <span className="feature-icon">📊</span>
+              <div>
+                <h4>Traffic Monitoring</h4>
+                <p>Real-time network traffic analysis</p>
+              </div>
             </div>
-            <div className="flow-arrow">↓</div>
-            <div className="flow-item">
-              <span className="flow-icon">⚡</span>
-              <span>Flask Backend</span>
-              <span className="flow-desc">Validation · Storage · API</span>
+            <div className="feature-item">
+              <span className="feature-icon">⚡</span>
+              <div>
+                <h4>Alerting</h4>
+                <p>Automatic security change detection</p>
+              </div>
             </div>
-            <div className="flow-arrow">↓</div>
-            <div className="flow-item">
-              <span className="flow-icon">🗄️</span>
-              <span>PostgreSQL Database</span>
+            <div className="feature-item">
+              <span className="feature-icon">🖥️</span>
+              <div>
+                <h4>SOC Dashboard</h4>
+                <p>Premium command center interface</p>
+              </div>
             </div>
-            <div className="flow-arrow">↓</div>
-            <div className="flow-item">
-              <span className="flow-icon">🎨</span>
-              <span>React Dashboard</span>
-              <span className="flow-desc">SOC/NOC Visualization</span>
+            <div className="feature-item">
+              <span className="feature-icon">🔒</span>
+              <div>
+                <h4>Security Focused</h4>
+                <p>Private network only, no public scanning</p>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* How It Works */}
         <div className="about-card">
-          <h2 className="about-card-title">Technology Stack</h2>
-          <div className="tech-grid">
-            <div className="tech-item">
-              <span className="tech-icon">⚛️</span>
-              <span>React 18</span>
+          <h2 className="about-card-title">How It Works</h2>
+          <div className="how-it-works">
+            <div className="step">
+              <span className="step-number">1</span>
+              <div className="step-content">
+                <h4>Local Agent Discovery</h4>
+                <p>The Local Agent scans your authorized network using ARP to discover active devices</p>
+              </div>
             </div>
-            <div className="tech-item">
-              <span className="tech-icon">🐍</span>
-              <span>Python 3.11</span>
+            <div className="step">
+              <span className="step-number">2</span>
+              <div className="step-content">
+                <h4>Port & Traffic Analysis</h4>
+                <p>Identifies open ports and monitors network traffic in real-time</p>
+              </div>
             </div>
-            <div className="tech-item">
-              <span className="tech-icon">🔬</span>
-              <span>Scapy</span>
-            </div>
-            <div className="tech-item">
-              <span className="tech-icon">📊</span>
-              <span>Chart.js</span>
-            </div>
-            <div className="tech-item">
-              <span className="tech-icon">🔥</span>
-              <span>Flask 3.0</span>
-            </div>
-            <div className="tech-item">
-              <span className="tech-icon">🐘</span>
-              <span>PostgreSQL</span>
-            </div>
-            <div className="tech-item">
-              <span className="tech-icon">📦</span>
-              <span>SQLAlchemy</span>
-            </div>
-            <div className="tech-item">
-              <span className="tech-icon">🎨</span>
-              <span>Bootstrap 5</span>
+            <div className="step">
+              <span className="step-number">3</span>
+              <div className="step-content">
+                <h4>Cloud Dashboard</h4>
+                <p>Data is securely sent to the cloud dashboard for visualization and monitoring</p>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Built by */}
         <div className="about-card developer">
           <h2 className="about-card-title">Built by</h2>
           <div className="developer-info">
