@@ -2,12 +2,10 @@ services:
   - type: web
     name: netsentry-backend
     runtime: python
-    repo: https://github.com/shreyas-ms-cyber/NetSentry
     plan: free
     region: oregon
-    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:app
+    startCommand: gunicorn --chdir backend wsgi:app
     envVars:
       - key: DATABASE_URL
         value: postgresql://neondb_owner:npg_LAkZPgOJ73Ve@ep-shiny-lab-ayqht9jl-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
