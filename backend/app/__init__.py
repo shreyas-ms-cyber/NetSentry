@@ -3,18 +3,16 @@ NetSentry Backend Application
 """
 
 import os
-import sys
 import traceback
 from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
+
+# IMPORT db FROM extensions - NOT create a new one
+from app.extensions import db
 
 # Load environment variables
 load_dotenv()
-
-# Initialize db
-db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
@@ -23,7 +21,6 @@ def create_app():
     database_url = os.environ.get('DATABASE_URL')
     
     if database_url and 'postgresql' in database_url:
-        # For psycopg v3, use the correct driver prefix
         if not database_url.startswith('postgresql+psycopg'):
             database_url = database_url.replace('postgresql://', 'postgresql+psycopg://')
         print(f"📊 Using PostgreSQL with psycopg v3 driver")
@@ -44,7 +41,7 @@ def create_app():
     # CORS - Allow all origins
     CORS(app, resources={r"/*": {"origins": "*"}})
     
-    # Initialize db with app
+    # Initialize db with app - THIS IS THE KEY FIX
     db.init_app(app)
     
     # Create tables
@@ -78,13 +75,13 @@ def create_app():
             'status': 'running'
         })
     
-    # Add a test endpoint to debug
+    # Test endpoint to debug database
     @app.route('/test')
     def test():
         try:
             from app.models import Device
             count = Device.query.count()
-            return jsonify({'message': 'Database working', 'device_count': count})
+            return jsonify({'message': 'Database working!', 'device_count': count})
         except Exception as e:
             return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
     

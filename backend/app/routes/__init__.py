@@ -25,6 +25,58 @@ def get_devices():
     except Exception as e:
         return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
 
+@api_bp.route('/devices/ingest', methods=['POST'])
+def ingest_devices():
+    try:
+        data = request.get_json()
+        if not data or 'devices' not in data:
+            return jsonify({'error': 'Invalid data format'}), 400
+        
+        devices_data = data['devices']
+        created_count = 0
+        updated_count = 0
+        
+        for device_data in devices_data:
+            ip = device_data.get('ip_address')
+            mac = device_data.get('mac_address')
+            
+            if not ip or not mac:
+                continue
+            
+            existing = Device.query.filter_by(ip_address=ip).first()
+            
+            if existing:
+                existing.last_seen = datetime.now(timezone.utc)
+                existing.status = 'ONLINE'
+                if device_data.get('hostname'):
+                    existing.hostname = device_data.get('hostname')
+                if device_data.get('vendor') and device_data.get('vendor') != 'Unknown Vendor':
+                    existing.vendor = device_data.get('vendor')
+                updated_count += 1
+            else:
+                device = Device(
+                    ip_address=ip,
+                    mac_address=mac,
+                    vendor=device_data.get('vendor', 'Unknown'),
+                    hostname=device_data.get('hostname'),
+                    status='ONLINE',
+                    first_seen=datetime.now(timezone.utc),
+                    last_seen=datetime.now(timezone.utc)
+                )
+                db.session.add(device)
+                created_count += 1
+        
+        db.session.commit()
+        return jsonify({
+            'status': 'success',
+            'created': created_count,
+            'updated': updated_count,
+            'total': len(devices_data)
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+
 @api_bp.route('/dashboard/summary')
 def dashboard_summary():
     try:
