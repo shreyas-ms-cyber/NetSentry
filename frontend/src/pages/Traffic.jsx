@@ -36,10 +36,13 @@ const Traffic = () => {
   // SAFE: Get latest traffic
   const latestTraffic = trafficData && trafficData.length > 0 ? trafficData[0] : null
   
-  // SAFE: Protocol breakdown with fallback
+  // SAFE: Protocol breakdown with fallback - ALWAYS returns all 4 protocols
   const getProtocolBreakdown = () => {
-    if (!latestTraffic) return { tcp: 0, udp: 0, icmp: 0, other: 0 }
+    if (!latestTraffic) {
+      return { tcp: 0, udp: 0, icmp: 0, other: 0 }
+    }
     const pb = latestTraffic.protocol_breakdown || {}
+    // Ensure all 4 protocols exist with numeric values
     return {
       tcp: typeof pb.tcp === 'number' ? pb.tcp : 0,
       udp: typeof pb.udp === 'number' ? pb.udp : 0,
@@ -55,10 +58,11 @@ const Traffic = () => {
     return Array.isArray(talkers) ? talkers : []
   }
 
-  // SAFE: Calculate stats
+  // SAFE: Calculate stats - ALWAYS returns numbers
   const calculateStats = () => {
+    const defaultStats = { totalPackets: 0, avgPps: 0, peakPps: 0, totalBandwidth: 0 }
     if (!trafficData || trafficData.length === 0) {
-      return { totalPackets: 0, avgPps: 0, peakPps: 0, totalBandwidth: 0 }
+      return defaultStats
     }
     
     const ppsValues = trafficData.map(d => typeof d.packets_per_sec === 'number' ? d.packets_per_sec : 0)
@@ -85,7 +89,7 @@ const Traffic = () => {
         <div className="traffic-error">
           <FontAwesomeIcon icon="exclamation-triangle" />
           <p>{error}</p>
-          <button onClick={fetchTraffic}>Retry</button>
+          <button className="btn-retry" onClick={fetchTraffic}>Retry</button>
         </div>
       </div>
     )
@@ -105,7 +109,7 @@ const Traffic = () => {
         </button>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - ALWAYS show numbers even if zero */}
       <div className="traffic-stats">
         <div className="traffic-stat-card">
           <span className="stat-label">Total Packets</span>
@@ -176,9 +180,9 @@ const Traffic = () => {
         </div>
       </div>
 
-      {/* Bottom Grid */}
+      {/* Bottom Grid - ALWAYS shows protocol breakdown even with zeros */}
       <div className="traffic-bottom-grid">
-        {/* Protocol Breakdown */}
+        {/* Protocol Breakdown - ALWAYS visible */}
         <div className="traffic-chart-card">
           <div className="chart-card-header">
             <div>
@@ -189,7 +193,8 @@ const Traffic = () => {
           <div className="protocol-list">
             {loading ? (
               <div className="protocol-loading">Loading...</div>
-            ) : hasProtocolData ? (
+            ) : (
+              // ALWAYS render all 4 protocols, even with 0%
               Object.entries(protocolBreakdown).map(([proto, value]) => (
                 <div key={proto} className="protocol-item">
                   <span className="protocol-name">{proto.toUpperCase()}</span>
@@ -199,8 +204,6 @@ const Traffic = () => {
                   <span className="protocol-value">{value.toFixed(1)}%</span>
                 </div>
               ))
-            ) : (
-              <div className="protocol-empty">No protocol data available</div>
             )}
           </div>
         </div>
