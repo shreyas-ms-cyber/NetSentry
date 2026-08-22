@@ -7,24 +7,22 @@ const Traffic = () => {
   const [loading, setLoading] = useState(true)
   const [trafficData, setTrafficData] = useState([])
   const [error, setError] = useState(null)
-  const [displayEntry, setDisplayEntry] = useState(null)
 
   const fetchTraffic = async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await getTraffic({ limit: 200 })
+      const response = await getTraffic({ limit: 100 })
       
+      // The response data is the array of traffic entries
       let data = []
       if (response && response.data) {
+        // response.data is the array of traffic entries
         data = Array.isArray(response.data) ? response.data : []
       }
       
+      console.log('Traffic Data:', data)
       setTrafficData(data)
-      
-      // Find the best entry to display
-      const bestEntry = findBestTrafficEntry(data)
-      setDisplayEntry(bestEntry)
       
     } catch (err) {
       console.error('Error fetching traffic:', err)
@@ -34,25 +32,27 @@ const Traffic = () => {
     }
   }
 
-  // Find the entry with the most recent non-zero protocol breakdown
-  const findBestTrafficEntry = (data) => {
-    if (!data || data.length === 0) return null
-    
-    // Look for entry with non-zero protocol breakdown
-    for (const entry of data) {
-      const pb = entry.protocol_breakdown || {}
-      if (pb.tcp > 0 || pb.udp > 0 || pb.icmp > 0 || pb.other > 0) {
-        return entry
-      }
-    }
-    
-    // If none found, return the first entry
-    return data[0] || null
-  }
-
   useEffect(() => {
     fetchTraffic()
   }, [])
+
+  // Find the best entry to display - one with non-zero protocol breakdown
+  const findDisplayEntry = () => {
+    if (!trafficData || trafficData.length === 0) return null
+    
+    // Find first entry with non-zero protocol breakdown
+    for (const entry of trafficData) {
+      if (entry.protocol_breakdown) {
+        const pb = entry.protocol_breakdown
+        if (pb.tcp > 0 || pb.udp > 0 || pb.icmp > 0 || pb.other > 0) {
+          return entry
+        }
+      }
+    }
+    
+    // If none found, return the latest entry
+    return trafficData[0] || null
+  }
 
   // Calculate stats from all data
   const calculateStats = () => {
@@ -69,38 +69,19 @@ const Traffic = () => {
     }
   }
 
+  const displayEntry = findDisplayEntry()
   const stats = calculateStats()
   const hasData = trafficData && trafficData.length > 0
+
+  // Get protocol breakdown from display entry
+  const protocolBreakdown = displayEntry?.protocol_breakdown || { tcp: 0, udp: 0, icmp: 0, other: 0 }
+  const topTalkers = displayEntry?.top_talkers || []
   
-  // Get protocol breakdown - FORCE from displayEntry
-  const getProtocolBreakdown = () => {
-    if (!displayEntry) {
-      return { tcp: 0, udp: 0, icmp: 0, other: 0 }
-    }
-    const pb = displayEntry.protocol_breakdown || {}
-    return {
-      tcp: typeof pb.tcp === 'number' ? pb.tcp : 0,
-      udp: typeof pb.udp === 'number' ? pb.udp : 0,
-      icmp: typeof pb.icmp === 'number' ? pb.icmp : 0,
-      other: typeof pb.other === 'number' ? pb.other : 0
-    }
-  }
-
-  // Get top talkers - FORCE from displayEntry
-  const getTopTalkers = () => {
-    if (!displayEntry) return []
-    const talkers = displayEntry.top_talkers
-    return Array.isArray(talkers) ? talkers : []
-  }
-
-  const protocolBreakdown = getProtocolBreakdown()
-  const topTalkers = getTopTalkers()
   const hasProtocolData = Object.values(protocolBreakdown).some(v => v > 0)
 
-  // Debug log to check data
-  console.log('Traffic Data:', trafficData)
   console.log('Display Entry:', displayEntry)
   console.log('Protocol Breakdown:', protocolBreakdown)
+  console.log('Top Talkers:', topTalkers)
 
   if (error) {
     return (
@@ -199,7 +180,7 @@ const Traffic = () => {
 
       {/* Bottom Grid */}
       <div className="traffic-bottom-grid">
-        {/* Protocol Breakdown - ALWAYS SHOW */}
+        {/* Protocol Breakdown */}
         <div className="traffic-chart-card">
           <div className="chart-card-header">
             <div className="chart-card-title">Protocol Breakdown</div>
@@ -209,7 +190,6 @@ const Traffic = () => {
             {loading ? (
               <div className="protocol-loading">Loading...</div>
             ) : (
-              // FORCE SHOW: Always render protocol breakdown
               Object.entries(protocolBreakdown).map(([proto, value]) => (
                 <div key={proto} className="protocol-item">
                   <span className="protocol-name">{proto.toUpperCase()}</span>
@@ -221,10 +201,8 @@ const Traffic = () => {
               ))
             )}
           </div>
-          {!hasProtocolData && !loading && (
-            <div style={{ textAlign: 'center', padding: '8px 0', color: 'rgba(255,255,255,0.2)', fontSize: '12px' }}>
-              No protocol data available
-            </div>
+          {!loading && !hasProtocolData && (
+            <div className="protocol-empty">No protocol data available</div>
           )}
         </div>
 
@@ -245,7 +223,7 @@ const Traffic = () => {
                   <div key={i} className="talker-item">
                     <div className="talker-info">
                       <span className="talker-ip">{talker.ip || 'Unknown'}</span>
-                      <span className="talker-traffic">{bytes.toFixed(1)} MB</span>
+                      <span className="talker-traffic">{bytes.toFixed(1)} MB}</span>
                     </div>
                     <div className="talker-bar-track">
                       <div 
