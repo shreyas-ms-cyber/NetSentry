@@ -7,12 +7,13 @@ const Traffic = () => {
   const [loading, setLoading] = useState(true)
   const [trafficData, setTrafficData] = useState([])
   const [error, setError] = useState(null)
+  const [displayData, setDisplayData] = useState(null)
 
   const fetchTraffic = async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await getTraffic({ limit: 100 })
+      const response = await getTraffic({ limit: 200 })
       
       let data = []
       if (response && response.data) {
@@ -20,6 +21,11 @@ const Traffic = () => {
       }
       
       setTrafficData(data)
+      
+      // Find the best entry to display
+      const bestEntry = findBestTrafficEntry(data)
+      setDisplayData(bestEntry)
+      
     } catch (err) {
       console.error('Error fetching traffic:', err)
       setError('Failed to load traffic data')
@@ -28,47 +34,35 @@ const Traffic = () => {
     }
   }
 
+  // Find the entry with the most recent non-zero protocol breakdown
+  const findBestTrafficEntry = (data) => {
+    if (!data || data.length === 0) return null
+    
+    // First, try to find an entry with non-zero protocol breakdown
+    for (const entry of data) {
+      const pb = entry.protocol_breakdown || {}
+      if ((pb.tcp > 0 || pb.udp > 0 || pb.icmp > 0 || pb.other > 0) && 
+          entry.packets_per_sec > 0) {
+        return entry
+      }
+    }
+    
+    // If none found, return the first entry with packets_per_sec > 0
+    for (const entry of data) {
+      if (entry.packets_per_sec > 0) {
+        return entry
+      }
+    }
+    
+    // Fallback to the first entry
+    return data[0]
+  }
+
   useEffect(() => {
     fetchTraffic()
   }, [])
 
-  // Find the latest traffic entry that has actual protocol breakdown data
-  const findLatestTrafficWithData = () => {
-    if (!trafficData || trafficData.length === 0) return null
-    
-    // Look for entry with protocol breakdown that has values > 0
-    for (const entry of trafficData) {
-      if (entry.protocol_breakdown) {
-        const pb = entry.protocol_breakdown
-        if (pb.tcp > 0 || pb.udp > 0 || pb.icmp > 0 || pb.other > 0) {
-          return entry
-        }
-      }
-    }
-    
-    // If no entry has real data, return the latest entry
-    return trafficData[0]
-  }
-
-  const latestTraffic = findLatestTrafficWithData()
-  
-  const getProtocolBreakdown = () => {
-    if (!latestTraffic) return { tcp: 0, udp: 0, icmp: 0, other: 0 }
-    const pb = latestTraffic.protocol_breakdown || {}
-    return {
-      tcp: typeof pb.tcp === 'number' ? pb.tcp : 0,
-      udp: typeof pb.udp === 'number' ? pb.udp : 0,
-      icmp: typeof pb.icmp === 'number' ? pb.icmp : 0,
-      other: typeof pb.other === 'number' ? pb.other : 0
-    }
-  }
-
-  const getTopTalkers = () => {
-    if (!latestTraffic) return []
-    const talkers = latestTraffic.top_talkers
-    return Array.isArray(talkers) ? talkers : []
-  }
-
+  // Calculate stats from all data
   const calculateStats = () => {
     if (!trafficData || trafficData.length === 0) {
       return { totalPackets: 0, avgPps: 0, peakPps: 0, totalBandwidth: 0 }
@@ -84,9 +78,28 @@ const Traffic = () => {
   }
 
   const stats = calculateStats()
+  const hasData = trafficData && trafficData.length > 0
+  
+  // Get protocol breakdown from display data
+  const getProtocolBreakdown = () => {
+    if (!displayData) return { tcp: 0, udp: 0, icmp: 0, other: 0 }
+    const pb = displayData.protocol_breakdown || {}
+    return {
+      tcp: typeof pb.tcp === 'number' ? pb.tcp : 0,
+      udp: typeof pb.udp === 'number' ? pb.udp : 0,
+      icmp: typeof pb.icmp === 'number' ? pb.icmp : 0,
+      other: typeof pb.other === 'number' ? pb.other : 0
+    }
+  }
+
+  const getTopTalkers = () => {
+    if (!displayData) return []
+    const talkers = displayData.top_talkers
+    return Array.isArray(talkers) ? talkers : []
+  }
+
   const protocolBreakdown = getProtocolBreakdown()
   const topTalkers = getTopTalkers()
-  const hasData = trafficData && trafficData.length > 0
   const hasProtocolData = Object.values(protocolBreakdown).some(v => v > 0)
 
   if (error) {
@@ -161,8 +174,16 @@ const Traffic = () => {
                 const height = Math.max(4, (pps / maxPps) * 90)
                 return (
                   <div key={i} className="chart-bar-item">
-                    <div className="chart-bar-fill" style={{ height: `${height}%`, backgroundColor: pps > 0 ? '#00E5FF' : 'rgba(255,255,255,0.05)' }} />
-                    <span className="chart-bar-label">{d.timestamp ? new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                    <div 
+                      className="chart-bar-fill" 
+                      style={{ 
+                        height: `${height}%`, 
+                        backgroundColor: pps > 0 ? '#00E5FF' : 'rgba(255,255,255,0.05)' 
+                      }} 
+                    />
+                    <span className="chart-bar-label">
+                      {d.timestamp ? new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                    </span>
                   </div>
                 )
               })}
@@ -178,6 +199,7 @@ const Traffic = () => {
 
       {/* Bottom Grid */}
       <div className="traffic-bottom-grid">
+        {/* Protocol Breakdown - ALWAYS shows */}
         <div className="traffic-chart-card">
           <div className="chart-card-header">
             <div className="chart-card-title">Protocol Breakdown</div>
@@ -202,6 +224,7 @@ const Traffic = () => {
           </div>
         </div>
 
+        {/* Top Talkers */}
         <div className="traffic-chart-card">
           <div className="chart-card-header">
             <div className="chart-card-title">Top Talkers</div>
@@ -221,7 +244,10 @@ const Traffic = () => {
                       <span className="talker-traffic">{bytes.toFixed(1)} MB</span>
                     </div>
                     <div className="talker-bar-track">
-                      <div className="talker-bar-fill" style={{ width: `${Math.min((bytes / maxBytes) * 100, 100)}%` }} />
+                      <div 
+                        className="talker-bar-fill" 
+                        style={{ width: `${Math.min((bytes / maxBytes) * 100, 100)}%` }} 
+                      />
                     </div>
                   </div>
                 )
