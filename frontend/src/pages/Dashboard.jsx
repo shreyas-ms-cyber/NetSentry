@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { getDashboardSummary, getTraffic, getAlerts } from '../services/api'
+import { getCached, setCached } from '../utils/cache'
 import './Dashboard.css'
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true)
-  const [summary, setSummary] = useState(null)
-  const [trafficData, setTrafficData] = useState([])
-  const [alerts, setAlerts] = useState([])
+  const [summary, setSummary] = useState(() => getCached('dashboard-summary'))
+  const [trafficData, setTrafficData] = useState(() => getCached('traffic-data') || [])
+  const [alerts, setAlerts] = useState(() => getCached('alerts-data') || [])
   const [lastUpdated, setLastUpdated] = useState(null)
 
   const fetchAllData = async () => {
@@ -18,10 +19,20 @@ const Dashboard = () => {
         getTraffic({ limit: 50 }),
         getAlerts({ acknowledged: false })
       ])
-      setSummary(summaryRes.data)
-      setTrafficData(trafficRes.data || [])
-      setAlerts(alertsRes.data || [])
+      
+      const summaryData = summaryRes.data
+      const trafficData = trafficRes.data || []
+      const alertsData = alertsRes.data || []
+      
+      setSummary(summaryData)
+      setTrafficData(trafficData)
+      setAlerts(alertsData)
       setLastUpdated(new Date())
+      
+      // Cache data for 30 seconds
+      setCached('dashboard-summary', summaryData, 30)
+      setCached('traffic-data', trafficData, 30)
+      setCached('alerts-data', alertsData, 30)
     } catch (err) {
       console.error('Error fetching data:', err)
     } finally {
@@ -32,14 +43,6 @@ const Dashboard = () => {
   useEffect(() => {
     fetchAllData()
   }, [])
-
-  // If data is empty, refetch after 5 seconds (in case agent is still starting)
-  useEffect(() => {
-    if (!loading && summary && Object.keys(summary).length === 0) {
-      const timer = setTimeout(() => fetchAllData(), 5000)
-      return () => clearTimeout(timer)
-    }
-  }, [loading, summary])
 
   const stats = [
     { label: 'Total Devices', value: summary?.total_devices ?? '—', icon: 'server', color: '#00E5FF' },
@@ -53,8 +56,7 @@ const Dashboard = () => {
   const protocolBreakdown = summary?.latest_traffic?.protocol_breakdown || {}
   const topTalkers = summary?.latest_traffic?.top_talkers || []
 
-  // Show loading skeletons while fetching
-  if (loading) {
+  if (loading && !summary) {
     return (
       <div className="dashboard">
         <div className="dashboard-header">
