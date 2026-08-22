@@ -14,14 +14,25 @@ const Traffic = () => {
       setError(null)
       const response = await getTraffic({ limit: 100 })
       
-      // The response data is the array of traffic entries
+      console.log('Full Response:', response)
+      
+      // IMPORTANT: The API returns { count: X, traffic: [...] }
+      // NOT an array directly!
       let data = []
       if (response && response.data) {
-        // response.data is the array of traffic entries
-        data = Array.isArray(response.data) ? response.data : []
+        // Check if response.data has a 'traffic' property (the actual array)
+        if (response.data.traffic && Array.isArray(response.data.traffic)) {
+          data = response.data.traffic
+        } 
+        // Fallback: if response.data is directly the array
+        else if (Array.isArray(response.data)) {
+          data = response.data
+        }
       }
       
-      console.log('Traffic Data:', data)
+      console.log('Extracted Traffic Data:', data)
+      console.log('Number of entries:', data.length)
+      
       setTrafficData(data)
       
     } catch (err) {
@@ -190,15 +201,19 @@ const Traffic = () => {
             {loading ? (
               <div className="protocol-loading">Loading...</div>
             ) : (
-              Object.entries(protocolBreakdown).map(([proto, value]) => (
-                <div key={proto} className="protocol-item">
-                  <span className="protocol-name">{proto.toUpperCase()}</span>
-                  <div className="protocol-bar-track">
-                    <div className="protocol-bar-fill" style={{ width: `${Math.max(1, value)}%` }} />
+              Object.entries(protocolBreakdown).map(([proto, value]) => {
+                // Ensure value is a number
+                const numValue = typeof value === 'number' ? value : 0
+                return (
+                  <div key={proto} className="protocol-item">
+                    <span className="protocol-name">{proto.toUpperCase()}</span>
+                    <div className="protocol-bar-track">
+                      <div className="protocol-bar-fill" style={{ width: `${Math.max(1, numValue)}%` }} />
+                    </div>
+                    <span className="protocol-value">{numValue.toFixed(1)}%</span>
                   </div>
-                  <span className="protocol-value">{value.toFixed(1)}%</span>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
           {!loading && !hasProtocolData && (
