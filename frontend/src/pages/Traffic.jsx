@@ -144,7 +144,6 @@ const Traffic = () => {
             <div className="chart-loading">Loading traffic data...</div>
           ) : hasData ? (
             <div className="chart-bars-wrapper">
-              {/* SAFE: Only map if trafficData is an array */}
               {Array.isArray(trafficData) && trafficData.length > 0 ? (
                 trafficData.slice(0, 50).reverse().map((d, i) => {
                   const pps = typeof d.packets_per_sec === 'number' ? d.packets_per_sec : 0
@@ -191,7 +190,6 @@ const Traffic = () => {
             {loading ? (
               <div className="protocol-loading">Loading...</div>
             ) : hasProtocolData ? (
-              // SAFE: Object.entries is safe
               Object.entries(protocolBreakdown).map(([proto, value]) => (
                 <div key={proto} className="protocol-item">
                   <span className="protocol-name">{proto.toUpperCase()}</span>
@@ -219,7 +217,6 @@ const Traffic = () => {
             {loading ? (
               <div className="talkers-loading">Loading...</div>
             ) : topTalkers.length > 0 ? (
-              // SAFE: Only map if topTalkers is an array
               Array.isArray(topTalkers) && topTalkers.length > 0 ? (
                 topTalkers.slice(0, 5).map((talker, i) => {
                   const maxBytes = topTalkers[0]?.bytes_mb || 1
