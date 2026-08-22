@@ -7,7 +7,7 @@ const Traffic = () => {
   const [loading, setLoading] = useState(true)
   const [trafficData, setTrafficData] = useState([])
   const [error, setError] = useState(null)
-  const [displayData, setDisplayData] = useState(null)
+  const [displayEntry, setDisplayEntry] = useState(null)
 
   const fetchTraffic = async () => {
     try {
@@ -24,7 +24,7 @@ const Traffic = () => {
       
       // Find the best entry to display
       const bestEntry = findBestTrafficEntry(data)
-      setDisplayData(bestEntry)
+      setDisplayEntry(bestEntry)
       
     } catch (err) {
       console.error('Error fetching traffic:', err)
@@ -38,24 +38,16 @@ const Traffic = () => {
   const findBestTrafficEntry = (data) => {
     if (!data || data.length === 0) return null
     
-    // First, try to find an entry with non-zero protocol breakdown
+    // Look for entry with non-zero protocol breakdown
     for (const entry of data) {
       const pb = entry.protocol_breakdown || {}
-      if ((pb.tcp > 0 || pb.udp > 0 || pb.icmp > 0 || pb.other > 0) && 
-          entry.packets_per_sec > 0) {
+      if (pb.tcp > 0 || pb.udp > 0 || pb.icmp > 0 || pb.other > 0) {
         return entry
       }
     }
     
-    // If none found, return the first entry with packets_per_sec > 0
-    for (const entry of data) {
-      if (entry.packets_per_sec > 0) {
-        return entry
-      }
-    }
-    
-    // Fallback to the first entry
-    return data[0]
+    // If none found, return the first entry
+    return data[0] || null
   }
 
   useEffect(() => {
@@ -80,10 +72,12 @@ const Traffic = () => {
   const stats = calculateStats()
   const hasData = trafficData && trafficData.length > 0
   
-  // Get protocol breakdown from display data
+  // Get protocol breakdown - FORCE from displayEntry
   const getProtocolBreakdown = () => {
-    if (!displayData) return { tcp: 0, udp: 0, icmp: 0, other: 0 }
-    const pb = displayData.protocol_breakdown || {}
+    if (!displayEntry) {
+      return { tcp: 0, udp: 0, icmp: 0, other: 0 }
+    }
+    const pb = displayEntry.protocol_breakdown || {}
     return {
       tcp: typeof pb.tcp === 'number' ? pb.tcp : 0,
       udp: typeof pb.udp === 'number' ? pb.udp : 0,
@@ -92,15 +86,21 @@ const Traffic = () => {
     }
   }
 
+  // Get top talkers - FORCE from displayEntry
   const getTopTalkers = () => {
-    if (!displayData) return []
-    const talkers = displayData.top_talkers
+    if (!displayEntry) return []
+    const talkers = displayEntry.top_talkers
     return Array.isArray(talkers) ? talkers : []
   }
 
   const protocolBreakdown = getProtocolBreakdown()
   const topTalkers = getTopTalkers()
   const hasProtocolData = Object.values(protocolBreakdown).some(v => v > 0)
+
+  // Debug log to check data
+  console.log('Traffic Data:', trafficData)
+  console.log('Display Entry:', displayEntry)
+  console.log('Protocol Breakdown:', protocolBreakdown)
 
   if (error) {
     return (
@@ -199,7 +199,7 @@ const Traffic = () => {
 
       {/* Bottom Grid */}
       <div className="traffic-bottom-grid">
-        {/* Protocol Breakdown - ALWAYS shows */}
+        {/* Protocol Breakdown - ALWAYS SHOW */}
         <div className="traffic-chart-card">
           <div className="chart-card-header">
             <div className="chart-card-title">Protocol Breakdown</div>
@@ -208,7 +208,8 @@ const Traffic = () => {
           <div className="protocol-list">
             {loading ? (
               <div className="protocol-loading">Loading...</div>
-            ) : hasProtocolData ? (
+            ) : (
+              // FORCE SHOW: Always render protocol breakdown
               Object.entries(protocolBreakdown).map(([proto, value]) => (
                 <div key={proto} className="protocol-item">
                   <span className="protocol-name">{proto.toUpperCase()}</span>
@@ -218,10 +219,13 @@ const Traffic = () => {
                   <span className="protocol-value">{value.toFixed(1)}%</span>
                 </div>
               ))
-            ) : (
-              <div className="protocol-empty">No protocol data available</div>
             )}
           </div>
+          {!hasProtocolData && !loading && (
+            <div style={{ textAlign: 'center', padding: '8px 0', color: 'rgba(255,255,255,0.2)', fontSize: '12px' }}>
+              No protocol data available
+            </div>
+          )}
         </div>
 
         {/* Top Talkers */}
