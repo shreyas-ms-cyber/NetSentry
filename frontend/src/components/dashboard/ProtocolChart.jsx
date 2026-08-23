@@ -10,6 +10,10 @@ import {
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 const ProtocolChart = ({ data, loading }) => {
+  // SAFETY: Ensure data is valid and has protocol_breakdown
+  const safeData = data || {}
+  const breakdown = safeData.protocol_breakdown || {}
+
   if (loading) {
     return (
       <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -18,7 +22,9 @@ const ProtocolChart = ({ data, loading }) => {
     )
   }
 
-  if (!data || !data.protocol_breakdown) {
+  const hasData = Object.values(breakdown).some(v => v > 0)
+
+  if (!hasData) {
     return (
       <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ color: 'rgba(255,255,255,0.2)' }}>No data available</p>
@@ -26,13 +32,16 @@ const ProtocolChart = ({ data, loading }) => {
     )
   }
 
-  const breakdown = data.protocol_breakdown || { tcp: 0, udp: 0, icmp: 0, other: 0 }
-  
   const chartData = {
     labels: ['TCP', 'UDP', 'ICMP', 'Other'],
     datasets: [
       {
-        data: [breakdown.tcp || 0, breakdown.udp || 0, breakdown.icmp || 0, breakdown.other || 0],
+        data: [
+          breakdown.tcp || 0,
+          breakdown.udp || 0,
+          breakdown.icmp || 0,
+          breakdown.other || 0
+        ],
         backgroundColor: [
           'rgba(0, 229, 255, 0.8)',
           'rgba(255, 200, 87, 0.8)',
@@ -81,7 +90,6 @@ const ProtocolChart = ({ data, loading }) => {
     cutout: '60%',
   }
 
-  // Calculate total packets for center text
   const totalPackets = Object.values(breakdown).reduce((a, b) => a + b, 0)
 
   return (

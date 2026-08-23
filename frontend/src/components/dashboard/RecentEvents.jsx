@@ -3,6 +3,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import './RecentEvents.css'
 
 const RecentEvents = ({ alerts, loading }) => {
+  // SAFETY: Ensure alerts is always an array
+  const safeAlerts = Array.isArray(alerts) ? alerts : []
+
   const getSeverityColor = (severity) => {
     switch (severity?.toUpperCase()) {
       case 'HIGH': return '#FF3B5C'
@@ -32,7 +35,7 @@ const RecentEvents = ({ alerts, loading }) => {
     )
   }
 
-  if (!alerts || alerts.length === 0) {
+  if (safeAlerts.length === 0) {
     return (
       <div className="recent-events empty">
         <p style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '16px 0' }}>
@@ -56,7 +59,7 @@ const RecentEvents = ({ alerts, loading }) => {
 
   return (
     <div className="recent-events">
-      {alerts.slice(0, 5).map((alert) => (
+      {safeAlerts.slice(0, 5).map((alert) => (
         <div key={alert.id} className="event-item">
           <div className="event-icon" style={{ color: getSeverityColor(alert.severity) }}>
             <FontAwesomeIcon icon={getAlertIcon(alert.alert_type)} />

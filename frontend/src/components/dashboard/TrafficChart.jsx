@@ -24,6 +24,9 @@ ChartJS.register(
 )
 
 const TrafficChart = ({ data, loading }) => {
+  // SAFETY: Ensure data is always an array
+  const safeData = Array.isArray(data) ? data : []
+
   if (loading) {
     return (
       <div className="chart-container" style={{ height: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -32,7 +35,7 @@ const TrafficChart = ({ data, loading }) => {
     )
   }
 
-  if (!data || data.length === 0) {
+  if (safeData.length === 0) {
     return (
       <div className="chart-container" style={{ height: '280px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>No network telemetry available</p>
@@ -41,15 +44,16 @@ const TrafficChart = ({ data, loading }) => {
     )
   }
 
+  // SAFETY: Only map if safeData is an array
   const chartData = {
-    labels: data.map(d => {
+    labels: safeData.map(d => {
       const date = new Date(d.timestamp)
       return date.toLocaleTimeString()
     }).reverse(),
     datasets: [
       {
         label: 'Packets/sec',
-        data: data.map(d => d.packets_per_sec).reverse(),
+        data: safeData.map(d => d.packets_per_sec || 0).reverse(),
         borderColor: '#00E5FF',
         backgroundColor: 'rgba(0, 229, 255, 0.1)',
         fill: true,
