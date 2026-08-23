@@ -44,7 +44,6 @@ const TrafficChart = ({ data, loading }) => {
     )
   }
 
-  // SAFETY: Only map if safeData is an array
   const chartData = {
     labels: safeData.map(d => {
       const date = new Date(d.timestamp)

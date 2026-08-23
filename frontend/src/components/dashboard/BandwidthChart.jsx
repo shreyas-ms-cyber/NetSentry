@@ -24,6 +24,9 @@ ChartJS.register(
 )
 
 const BandwidthChart = ({ data, loading }) => {
+  // SAFETY: Ensure data is always an array
+  const safeData = Array.isArray(data) ? data : []
+
   if (loading) {
     return (
       <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -32,7 +35,7 @@ const BandwidthChart = ({ data, loading }) => {
     )
   }
 
-  if (!data || data.length === 0) {
+  if (safeData.length === 0) {
     return (
       <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ color: 'rgba(255,255,255,0.2)' }}>No data available</p>
@@ -41,14 +44,14 @@ const BandwidthChart = ({ data, loading }) => {
   }
 
   const chartData = {
-    labels: data.map(d => {
+    labels: safeData.map(d => {
       const date = new Date(d.timestamp)
       return date.toLocaleTimeString()
     }).reverse(),
     datasets: [
       {
         label: 'Bandwidth (Mbps)',
-        data: data.map(d => d.bandwidth_mbps || 0).reverse(),
+        data: safeData.map(d => d.bandwidth_mbps || 0).reverse(),
         borderColor: '#00D26A',
         backgroundColor: 'rgba(0, 210, 106, 0.1)',
         fill: true,
