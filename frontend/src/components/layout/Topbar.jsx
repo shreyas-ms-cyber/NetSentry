@@ -8,6 +8,11 @@ const Topbar = ({ onMenuClick, isMobile }) => {
   return (
     <header className="topbar">
       <div className="topbar-left">
+        {isMobile && (
+          <button className="hamburger-btn" onClick={onMenuClick} aria-label="Toggle menu">
+            <FontAwesomeIcon icon="bars" />
+          </button>
+        )}
         <h1 className="page-title">
           {isMobile ? 'NetSentry' : 'Network Command Center'}
         </h1>
@@ -20,12 +25,8 @@ const Topbar = ({ onMenuClick, isMobile }) => {
         <div className="agent-status">
           <span className={`status-dot ${agentStatus} pulse`}></span>
           <span className="status-label">Agent {agentStatus}</span>
-          {!isMobile && (
-            <>
-              <span className="status-divider">•</span>
-              <span className="status-time">Last sync 12s ago</span>
-            </>
-          )}
+          <span className="status-divider">•</span>
+          <span className="status-time">Last sync 12s ago</span>
         </div>
 
         {!isMobile && (

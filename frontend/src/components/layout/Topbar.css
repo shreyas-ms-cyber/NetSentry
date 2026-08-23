@@ -19,6 +19,21 @@
   flex-wrap: wrap;
 }
 
+.hamburger-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 6px;
+  display: none;
+  transition: all 0.2s ease;
+}
+
+.hamburger-btn:hover {
+  color: #fff;
+}
+
 .page-title {
   font-family: 'Poppins', sans-serif;
   font-size: 18px;
@@ -44,7 +59,7 @@
 .agent-status {
   display: flex;
   align-items: center;
-  gap: 8px; /* <<< ADD GAP BETWEEN ELEMENTS */
+  gap: 8px;
   padding: 4px 12px 4px 10px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.04);
@@ -65,10 +80,11 @@
 }
 
 .status-divider {
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 10px;
-  margin: 0 2px;
-  display: inline !important;
+  margin: 0 4px;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .status-time {
@@ -78,7 +94,6 @@
   white-space: nowrap;
 }
 
-/* Search */
 .search-container {
   display: flex;
   align-items: center;
@@ -168,6 +183,10 @@
 }
 
 @media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex;
+  }
+  
   .topbar {
     padding: 10px 14px;
     min-height: 54px;
@@ -180,13 +199,15 @@
   }
   .agent-status {
     padding: 3px 8px 3px 6px;
-    gap: 6px;
+    gap: 8px !important;
   }
   .status-label {
     font-size: 10px;
   }
   .status-divider {
-    margin: 0 2px;
+    margin: 0 4px !important;
+    font-size: 10px !important;
+    display: inline-block !important;
   }
   .status-time {
     font-size: 9px;
@@ -205,15 +226,24 @@
     padding: 8px 10px;
     min-height: 48px;
   }
+  .hamburger-btn {
+    font-size: 16px;
+    padding: 2px 4px;
+  }
   .page-title {
     font-size: 13px;
   }
   .agent-status {
-    padding: 2px 6px 2px 4px;
-    gap: 4px;
+    padding: 2px 8px 2px 6px;
+    gap: 6px !important;
   }
   .status-label {
     font-size: 9px;
+  }
+  .status-divider {
+    margin: 0 3px !important;
+    font-size: 9px !important;
+    display: inline-block !important;
   }
   .status-time {
     font-size: 8px;
