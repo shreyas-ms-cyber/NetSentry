@@ -2,24 +2,55 @@ import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { 
-  faGaugeHigh, faNetworkWired, faPlug, faChartLine, 
-  faTriangleExclamation, faCircleInfo, faServer,
-  faMagnifyingGlass, faBell, faCircle, faArrowRight,
-  faChevronRight, faChevronLeft, faBars, faTimes,
-  faCheck, faExclamation, faXmark, faClock,
-  faDesktop, faLaptop, faMobile, faTablet,
-  faSync, faPlusCircle, faPowerOff, faCheckCircle,
-  faEllipsis, faArrowLeft, faEye, faRotate,
-  faShield, faDatabase, faSatelliteDish,
-  faSearch, faSpinner,
-  faInfoCircle, faExclamationCircle, faExclamationTriangle,
-  faGauge, faArrowsUpDown, faCloudUpload, faArrowUpDown
+  faGaugeHigh, 
+  faNetworkWired, 
+  faPlug, 
+  faChartLine, 
+  faTriangleExclamation, 
+  faCircleInfo, 
+  faServer,
+  faMagnifyingGlass, 
+  faBell, 
+  faCircle, 
+  faArrowRight,
+  faChevronRight, 
+  faChevronLeft, 
+  faBars, 
+  faTimes,
+  faCheck, 
+  faExclamation, 
+  faXmark, 
+  faClock,
+  faDesktop, 
+  faLaptop, 
+  faMobile, 
+  faTablet,
+  faSync, 
+  faPlusCircle, 
+  faPowerOff, 
+  faCheckCircle,
+  faEllipsis, 
+  faArrowLeft, 
+  faEye, 
+  faRotate,
+  faShield, 
+  faDatabase, 
+  faSatelliteDish,
+  faSearch, 
+  faSpinner,
+  faInfoCircle, 
+  faExclamationCircle, 
+  faExclamationTriangle,
+  faGauge,
+  faArrowUp,
+  faCloudUpload
 } from '@fortawesome/free-solid-svg-icons'
 import { 
   faGithub, 
   faLinkedin 
 } from '@fortawesome/free-brands-svg-icons'
 
+// Add all icons to library
 library.add(
   faGaugeHigh, faNetworkWired, faPlug, faChartLine,
   faTriangleExclamation, faCircleInfo, faServer,
@@ -32,7 +63,7 @@ library.add(
   faShield, faDatabase, faSatelliteDish,
   faSearch, faSpinner,
   faInfoCircle, faExclamationCircle, faExclamationTriangle,
-  faGauge, faArrowsUpDown, faCloudUpload, faArrowUpDown,
+  faGauge, faArrowUp, faCloudUpload,
   faGithub, faLinkedin
 )
 

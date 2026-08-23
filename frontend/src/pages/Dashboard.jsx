@@ -25,7 +25,6 @@ const Dashboard = () => {
         getAlerts({ acknowledged: false })
       ])
 
-      // SAFETY: Extract traffic array correctly
       let trafficArray = []
       if (trafficRes?.data) {
         if (Array.isArray(trafficRes.data)) {
@@ -35,7 +34,6 @@ const Dashboard = () => {
         }
       }
 
-      // SAFETY: Extract alerts array correctly
       let alertsArray = []
       if (alertsRes?.data) {
         if (Array.isArray(alertsRes.data)) {
@@ -45,7 +43,6 @@ const Dashboard = () => {
         }
       }
 
-      // Find the best entry (first with non-zero protocol breakdown)
       const bestTrafficEntry = trafficArray.find(entry => {
         const pb = entry.protocol_breakdown || {}
         return pb.tcp > 0 || pb.udp > 0 || pb.icmp > 0 || pb.other > 0
@@ -107,7 +104,6 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      {/* Header */}
       <div className="dashboard-header">
         <div className="dashboard-header-left">
           <h1 className="dashboard-title">Network Command Center</h1>
@@ -126,7 +122,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stats Grid */}
       <div className="stats-grid">
         {stats.map((stat, index) => (
           <div key={index} className="stat-card">
@@ -143,7 +138,6 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Charts Grid */}
       <div className="charts-grid">
         <div className="chart-card full-width">
           <div className="chart-card-header">
@@ -162,7 +156,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Bottom Grid */}
       <div className="bottom-grid">
         <div className="chart-card">
           <div className="chart-card-header">
@@ -181,7 +174,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Recent Events */}
       <div className="chart-card full-width">
         <div className="chart-card-header">
           <div className="chart-card-title">Recent Network Events</div>

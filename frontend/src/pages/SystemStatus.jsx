@@ -98,7 +98,7 @@ const SystemStatus = () => {
         <div className="status-card">
           <div className="status-card-header">
             <span className="status-card-icon">
-              <FontAwesomeIcon icon="circle-up" />
+              <FontAwesomeIcon icon="cloud-upload" />
             </span>
             <span className="status-card-name">Data Ingestion</span>
           </div>
