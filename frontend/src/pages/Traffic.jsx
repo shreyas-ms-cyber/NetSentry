@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { getTraffic } from '../services/api'
+import TrafficChart from '../components/dashboard/TrafficChart'
+import ProtocolChart from '../components/dashboard/ProtocolChart'
+import BandwidthChart from '../components/dashboard/BandwidthChart'
+import TopTalkers from '../components/dashboard/TopTalkers'
 import './Traffic.css'
 
 const Traffic = () => {
@@ -37,6 +41,7 @@ const Traffic = () => {
     fetchTraffic()
   }, [])
 
+  // Find the best entry for protocol breakdown and top talkers
   const findDisplayEntry = () => {
     if (!trafficData || trafficData.length === 0) return null
     for (const entry of trafficData) {
@@ -48,14 +53,33 @@ const Traffic = () => {
     return trafficData[0] || null
   }
 
+  // Calculate stats from all data
   const calculateStats = () => {
     if (!trafficData || trafficData.length === 0) {
       return { totalPackets: 0, avgPps: 0, peakPps: 0, totalBandwidth: 0 }
     }
+    
     const ppsValues = trafficData.map(d => typeof d.packets_per_sec === 'number' ? d.packets_per_sec : 0)
     const bandwidthValues = trafficData.map(d => typeof d.bandwidth_bytes === 'number' ? d.bandwidth_bytes : 0)
+    
+    // Compute total packets from pps over time intervals
+    let totalPackets = 0
+    for (let i = 0; i < trafficData.length; i++) {
+      const current = trafficData[i]
+      const next = trafficData[i + 1]
+      if (next && current.timestamp && next.timestamp) {
+        const timeDiff = (new Date(next.timestamp) - new Date(current.timestamp)) / 1000 // seconds
+        const avgPps = (current.packets_per_sec + next.packets_per_sec) / 2
+        totalPackets += avgPps * timeDiff
+      }
+    }
+    // If we have only one entry, approximate total packets as pps * 10 seconds (assumed interval)
+    if (trafficData.length === 1) {
+      totalPackets = trafficData[0].packets_per_sec * 10
+    }
+
     return {
-      totalPackets: trafficData.reduce((sum, d) => sum + (typeof d.total_packets === 'number' ? d.total_packets : 0), 0),
+      totalPackets: Math.round(totalPackets),
       avgPps: ppsValues.length > 0 ? ppsValues.reduce((a, b) => a + b, 0) / ppsValues.length : 0,
       peakPps: ppsValues.length > 0 ? Math.max(...ppsValues) : 0,
       totalBandwidth: bandwidthValues.reduce((a, b) => a + b, 0)
@@ -120,7 +144,7 @@ const Traffic = () => {
         </div>
       </div>
 
-      {/* Traffic Timeline */}
+      {/* Traffic Timeline - Using the same chart as Dashboard */}
       <div className="traffic-chart-card full-width">
         <div className="chart-card-header">
           <div>
@@ -134,43 +158,12 @@ const Traffic = () => {
             </div>
           )}
         </div>
-        <div className="chart-container">
-          {loading ? (
-            <div className="chart-loading">Loading traffic data...</div>
-          ) : hasData ? (
-            <div className="chart-bars-wrapper">
-              {trafficData.slice(0, 50).reverse().map((d, i) => {
-                const pps = typeof d.packets_per_sec === 'number' ? d.packets_per_sec : 0
-                const allPps = trafficData.map(t => typeof t.packets_per_sec === 'number' ? t.packets_per_sec : 0)
-                const maxPps = Math.max(...allPps, 1)
-                const height = Math.max(4, (pps / maxPps) * 90)
-                return (
-                  <div key={i} className="chart-bar-item">
-                    <div 
-                      className="chart-bar-fill" 
-                      style={{ 
-                        height: `${height}%`, 
-                        backgroundColor: pps > 0 ? '#00E5FF' : 'rgba(255,255,255,0.05)' 
-                      }} 
-                    />
-                    <span className="chart-bar-label">
-                      {d.timestamp ? new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="chart-empty">
-              <p>No traffic data available</p>
-              <span>Start the Local Agent to begin monitoring</span>
-            </div>
-          )}
-        </div>
+        <TrafficChart data={trafficData} loading={loading} />
       </div>
 
       {/* Bottom Grid */}
       <div className="traffic-bottom-grid">
+        {/* Protocol Breakdown */}
         <div className="traffic-chart-card">
           <div className="chart-card-header">
             <div className="chart-card-title">Protocol Breakdown</div>
@@ -179,7 +172,7 @@ const Traffic = () => {
           <div className="protocol-list">
             {loading ? (
               <div className="protocol-loading">Loading...</div>
-            ) : (
+            ) : hasProtocolData ? (
               Object.entries(protocolBreakdown).map(([proto, value]) => {
                 const numValue = typeof value === 'number' ? value : 0
                 return (
@@ -192,44 +185,19 @@ const Traffic = () => {
                   </div>
                 )
               })
+            ) : (
+              <div className="protocol-empty">No protocol data available</div>
             )}
           </div>
-          {!loading && !hasProtocolData && (
-            <div className="protocol-empty">No protocol data available</div>
-          )}
         </div>
 
+        {/* Top Talkers */}
         <div className="traffic-chart-card">
           <div className="chart-card-header">
             <div className="chart-card-title">Top Talkers</div>
             <div className="chart-card-subtitle">Traffic volume</div>
           </div>
-          <div className="talkers-list">
-            {loading ? (
-              <div className="talkers-loading">Loading...</div>
-            ) : topTalkers.length > 0 ? (
-              topTalkers.slice(0, 5).map((talker, i) => {
-                const maxBytes = topTalkers[0]?.bytes_mb || 1
-                const bytes = typeof talker.bytes_mb === 'number' ? talker.bytes_mb : 0
-                return (
-                  <div key={i} className="talker-item">
-                    <div className="talker-info">
-                      <span className="talker-ip">{talker.ip || 'Unknown'}</span>
-                      <span className="talker-traffic">{bytes.toFixed(1)} MB</span>
-                    </div>
-                    <div className="talker-bar-track">
-                      <div 
-                        className="talker-bar-fill" 
-                        style={{ width: `${Math.min((bytes / maxBytes) * 100, 100)}%` }} 
-                      />
-                    </div>
-                  </div>
-                )
-              })
-            ) : (
-              <div className="talkers-empty">No traffic data available</div>
-            )}
-          </div>
+          <TopTalkers data={topTalkers} loading={loading} />
         </div>
       </div>
     </div>
