@@ -31,31 +31,6 @@
   margin: 4px 0 0 0;
 }
 
-.btn-refresh-traffic {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-refresh-traffic:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-
-.btn-refresh-traffic:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .traffic-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -86,6 +61,12 @@
   margin-top: 2px;
 }
 
+.traffic-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
 .traffic-chart-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -96,6 +77,12 @@
 
 .traffic-chart-card.full-width {
   grid-column: 1 / -1;
+}
+
+.traffic-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 .chart-card-header {
@@ -119,104 +106,7 @@
   color: rgba(255, 255, 255, 0.2);
 }
 
-.chart-current {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.current-value {
-  font-size: 20px;
-  font-weight: 600;
-  color: #00E5FF;
-  font-family: var(--font-mono);
-}
-
-.current-label {
-  font-size: 9px;
-  color: rgba(255, 255, 255, 0.15);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.chart-container {
-  height: 200px;
-  display: flex;
-  align-items: flex-end;
-  padding-top: 10px;
-}
-
-.chart-bars-wrapper {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  width: 100%;
-  height: 100%;
-}
-
-.chart-bar-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  height: 100%;
-  min-height: 50px;
-}
-
-.chart-bar-fill {
-  width: 100%;
-  min-height: 3px;
-  border-radius: 2px;
-  transition: height 0.5s ease;
-}
-
-.chart-bar-label {
-  font-size: 7px;
-  color: rgba(255, 255, 255, 0.1);
-  margin-top: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 35px;
-}
-
-.chart-empty {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.15);
-}
-
-.chart-empty p {
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.chart-empty span {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.08);
-}
-
-.chart-loading {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.1);
-  font-size: 13px;
-}
-
-.traffic-bottom-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
+/* Protocol Breakdown */
 .protocol-list {
   display: flex;
   flex-direction: column;
@@ -260,20 +150,7 @@
   font-family: var(--font-mono);
 }
 
-.protocol-empty {
-  padding: 20px;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.15);
-  font-size: 13px;
-}
-
-.protocol-loading {
-  padding: 20px;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.1);
-  font-size: 13px;
-}
-
+/* Top Talkers */
 .talkers-list {
   display: flex;
   flex-direction: column;
@@ -319,54 +196,16 @@
   transition: width 0.6s ease;
 }
 
-.talkers-empty {
-  padding: 20px;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.15);
-  font-size: 13px;
-}
-
-.talkers-loading {
-  padding: 20px;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.1);
-  font-size: 13px;
-}
-
-.traffic-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  gap: 16px;
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.traffic-error svg {
-  font-size: 40px;
-  color: #FF3B5C;
-}
-
-.traffic-error button {
-  padding: 8px 24px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.traffic-error button:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-
 /* Responsive */
 @media (max-width: 1024px) {
   .traffic-stats {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .traffic-charts {
+    grid-template-columns: 1fr;
+  }
+  .traffic-chart-card.full-width {
+    grid-column: 1;
   }
   .traffic-bottom-grid {
     grid-template-columns: 1fr;
@@ -399,6 +238,22 @@
   .chart-current {
     display: none;
   }
+  .protocol-item {
+    grid-template-columns: 40px 1fr 40px;
+    gap: 8px;
+  }
+  .protocol-name {
+    font-size: 10px;
+  }
+  .protocol-value {
+    font-size: 10px;
+  }
+  .talker-ip {
+    font-size: 10px;
+  }
+  .talker-traffic {
+    font-size: 9px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -416,19 +271,19 @@
     height: 110px;
   }
   .protocol-item {
-    grid-template-columns: 40px 1fr 40px;
-    gap: 8px;
+    grid-template-columns: 30px 1fr 30px;
+    gap: 6px;
   }
   .protocol-name {
-    font-size: 10px;
+    font-size: 9px;
   }
   .protocol-value {
-    font-size: 10px;
+    font-size: 9px;
   }
   .talker-ip {
-    font-size: 10px;
+    font-size: 9px;
   }
   .talker-traffic {
-    font-size: 9px;
+    font-size: 8px;
   }
 }
