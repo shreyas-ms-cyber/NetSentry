@@ -19,8 +19,6 @@
   flex-wrap: wrap;
 }
 
-/* No hamburger in topbar - removed */
-
 .page-title {
   font-family: 'Poppins', sans-serif;
   font-size: 18px;
@@ -65,8 +63,9 @@
 }
 
 .status-divider {
-  color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.2);
   font-size: 10px;
+  margin: 0 2px;
 }
 
 .status-time {
@@ -89,7 +88,6 @@
 .search-container:focus-within {
   border-color: rgba(0, 229, 255, 0.2);
   background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 0 30px rgba(0, 229, 255, 0.03);
 }
 
 .search-icon {
@@ -107,7 +105,6 @@
   width: 100%;
   outline: none;
 }
-
 .search-input::placeholder {
   color: rgba(255, 255, 255, 0.2);
 }
@@ -134,13 +131,11 @@
   font-size: 15px;
   position: relative;
 }
-
 .notif-btn:hover,
 .refresh-btn:hover {
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.7);
 }
-
 .notif-badge {
   position: absolute;
   top: -2px;
@@ -175,11 +170,10 @@
   .search-container {
     display: none;
   }
-  .status-time {
-    display: none;
-  }
+  /* Ensure status-divider is always visible */
   .status-divider {
-    display: none;
+    display: inline !important;
+    margin: 0 4px;
   }
   .agent-status {
     padding: 3px 8px 3px 6px;

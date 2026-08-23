@@ -24,7 +24,6 @@ ChartJS.register(
 )
 
 const TrafficChart = ({ data, loading }) => {
-  // SAFETY: Ensure data is always an array
   const safeData = Array.isArray(data) ? data : []
 
   if (loading) {
@@ -74,17 +73,27 @@ const TrafficChart = ({ data, loading }) => {
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(13, 21, 38, 0.9)',
-        titleColor: '#fff',
-        bodyColor: 'rgba(255,255,255,0.7)',
-        borderColor: 'rgba(255,255,255,0.1)',
-        borderWidth: 1,
+        enabled: true,
+        mode: 'index',
+        intersect: false,
+        // Ensure tooltip is hidden on touch end
+        callbacks: {
+          label: function(context) {
+            return `Packets/sec: ${context.parsed.y.toFixed(1)}`
+          }
+        }
       }
     },
     scales: {
       x: {
         grid: { color: 'rgba(255,255,255,0.05)' },
-        ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 } }
+        ticks: { 
+          color: 'rgba(255,255,255,0.3)', 
+          font: { size: 10 },
+          maxRotation: 30,
+          autoSkip: true,
+          maxTicksLimit: 10
+        }
       },
       y: {
         grid: { color: 'rgba(255,255,255,0.05)' },
@@ -95,11 +104,22 @@ const TrafficChart = ({ data, loading }) => {
     interaction: {
       intersect: false,
       mode: 'index'
+    },
+    // Ensure tooltip is hidden on leave
+    onHover: (event, chartElement) => {
+      if (!chartElement || chartElement.length === 0) {
+        // Hide tooltip when not hovering over data point
+        const chart = event.chart
+        if (chart.tooltip) {
+          chart.tooltip.setActiveElements([], { x: 0, y: 0 })
+          chart.update()
+        }
+      }
     }
   }
 
   return (
-    <div className="chart-container" style={{ height: '280px' }}>
+    <div className="chart-container" style={{ height: '280px', position: 'relative', overflow: 'hidden' }}>
       <Line data={chartData} options={options} />
     </div>
   )

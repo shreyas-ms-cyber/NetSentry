@@ -195,3 +195,37 @@
     font-size: 9px;
   }
 }
+
+/* Refresh Button */
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+.btn-refresh:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+.btn-refresh svg {
+  font-size: 14px;
+}
+@media (max-width: 480px) {
+  .btn-refresh {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .btn-refresh svg {
+    font-size: 12px;
+  }
+}
