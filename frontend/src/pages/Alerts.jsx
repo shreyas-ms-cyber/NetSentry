@@ -21,21 +21,17 @@ const Alerts = () => {
     try {
       setLoading(true)
       const response = await getAlerts()
-      // SAFE: Always ensure we have an array
-      const alertsData = response?.data?.alerts || []
-      setAlerts(Array.isArray(alertsData) ? alertsData : [])
-      setFilteredAlerts(Array.isArray(alertsData) ? alertsData : [])
+      setAlerts(response.data.alerts || [])
+      setFilteredAlerts(response.data.alerts || [])
     } catch (err) {
       console.error('Error fetching alerts:', err)
-      setAlerts([])
-      setFilteredAlerts([])
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    let result = Array.isArray(alerts) ? [...alerts] : []
+    let result = [...alerts]
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
@@ -103,13 +99,11 @@ const Alerts = () => {
   }
 
   const getSeverityCount = (severity) => {
-    const alertsArray = Array.isArray(alerts) ? alerts : []
-    return alertsArray.filter(a => a.severity === severity).length
+    return alerts.filter(a => a.severity === severity).length
   }
 
   const getUnacknowledgedCount = () => {
-    const alertsArray = Array.isArray(alerts) ? alerts : []
-    return alertsArray.filter(a => !a.acknowledged).length
+    return alerts.filter(a => !a.acknowledged).length
   }
 
   if (loading) {
@@ -132,16 +126,13 @@ const Alerts = () => {
     )
   }
 
-  const alertsArray = Array.isArray(filteredAlerts) ? filteredAlerts : []
-  const totalAlerts = alertsArray.length
-
   return (
     <div className="alerts-page">
       <div className="alerts-header">
         <div>
           <h1 className="alerts-title">Security Alerts</h1>
           <p className="alerts-subtitle">
-            {totalAlerts} alerts · {getUnacknowledgedCount()} unacknowledged
+            {filteredAlerts.length} alerts · {getUnacknowledgedCount()} unacknowledged
           </p>
         </div>
         <button className="btn-refresh-alerts" onClick={fetchAlerts}>
@@ -186,7 +177,7 @@ const Alerts = () => {
             className={`filter-btn ${severityFilter === 'ALL' ? 'active' : ''}`}
             onClick={() => setSeverityFilter('ALL')}
           >
-            All ({totalAlerts})
+            All ({alerts.length})
           </button>
           <button
             className={`filter-btn high ${severityFilter === 'HIGH' ? 'active' : ''}`}
@@ -220,8 +211,8 @@ const Alerts = () => {
       </div>
 
       <div className="alerts-list">
-        {totalAlerts > 0 ? (
-          alertsArray.map((alert) => (
+        {filteredAlerts.length > 0 ? (
+          filteredAlerts.map((alert) => (
             <div key={alert.id} className={`alert-item ${alert.acknowledged ? 'acknowledged' : ''}`}>
               <div className="alert-icon">
                 <FontAwesomeIcon icon={getAlertIcon(alert.alert_type)} />
@@ -231,7 +222,7 @@ const Alerts = () => {
                   <span className="alert-type">{getAlertLabel(alert.alert_type)}</span>
                   {getSeverityBadge(alert.severity)}
                   {alert.acknowledged && (
-                    <span className="ack-badge">Acknowledged</span>
+                    <span className="ack-badge">✓ Acknowledged</span>
                   )}
                 </div>
                 <p className="alert-description">{alert.description}</p>

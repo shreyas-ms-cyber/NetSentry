@@ -11,7 +11,6 @@ const About = () => {
       </div>
 
       <div className="about-grid">
-        {/* What is NetSentry */}
         <div className="about-card">
           <h2 className="about-card-title">What is NetSentry?</h2>
           <p className="about-card-text">
@@ -22,7 +21,6 @@ const About = () => {
           </p>
         </div>
 
-        {/* Key Features */}
         <div className="about-card">
           <h2 className="about-card-title">Key Features</h2>
           <div className="features-grid">
@@ -71,7 +69,6 @@ const About = () => {
           </div>
         </div>
 
-        {/* How It Works */}
         <div className="about-card">
           <h2 className="about-card-title">How It Works</h2>
           <div className="how-it-works">
@@ -99,7 +96,6 @@ const About = () => {
           </div>
         </div>
 
-        {/* Built by */}
         <div className="about-card developer">
           <h2 className="about-card-title">Built by</h2>
           <div className="developer-info">

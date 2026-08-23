@@ -77,13 +77,11 @@ const DeviceDetails = () => {
 
   return (
     <div className="device-detail-page">
-      {/* Back Button */}
       <Link to="/devices" className="back-link">
         <FontAwesomeIcon icon="arrow-left" />
         Back to Devices
       </Link>
 
-      {/* Header */}
       <div className="detail-header">
         <div className="detail-header-left">
           <h1 className="detail-title">{device.ip_address}</h1>
@@ -98,7 +96,6 @@ const DeviceDetails = () => {
         </button>
       </div>
 
-      {/* Info Grid */}
       <div className="detail-info-grid">
         <div className="info-item">
           <span className="info-label">IP Address</span>
@@ -130,7 +127,6 @@ const DeviceDetails = () => {
         </div>
       </div>
 
-      {/* Ports Section */}
       <div className="detail-ports-section">
         <div className="ports-header">
           <h2 className="ports-title">Open Ports</h2>
