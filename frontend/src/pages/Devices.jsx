@@ -11,7 +11,6 @@ const Devices = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [sortBy, setSortBy] = useState('lastSeen')
-  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchDevices()
@@ -20,17 +19,11 @@ const Devices = () => {
   const fetchDevices = async () => {
     try {
       setLoading(true)
-      setError(null)
       const response = await getDevices()
-      // Safely extract devices array
-      const devicesData = response?.data?.devices || []
-      setDevices(devicesData)
-      setFilteredDevices(devicesData)
+      setDevices(response.data.devices || [])
+      setFilteredDevices(response.data.devices || [])
     } catch (err) {
       console.error('Error fetching devices:', err)
-      setError('Failed to load devices. Please try again.')
-      setDevices([])
-      setFilteredDevices([])
     } finally {
       setLoading(false)
     }
@@ -61,7 +54,7 @@ const Devices = () => {
         return new Date(b.first_seen) - new Date(a.first_seen)
       }
       if (sortBy === 'ip') {
-        return a.ip_address?.localeCompare(b.ip_address || '') || 0
+        return a.ip_address.localeCompare(b.ip_address)
       }
       return 0
     })
@@ -115,14 +108,6 @@ const Devices = () => {
           Refresh
         </button>
       </div>
-
-      {error && (
-        <div className="devices-error">
-          <FontAwesomeIcon icon="exclamation-circle" />
-          <span>{error}</span>
-          <button onClick={fetchDevices}>Retry</button>
-        </div>
-      )}
 
       <div className="devices-controls">
         <div className="search-wrapper">
@@ -188,8 +173,8 @@ const Devices = () => {
               filteredDevices.map((device) => (
                 <tr key={device.id} className="device-row">
                   <td>{getStatusBadge(device.status)}</td>
-                  <td className="mono">{device.ip_address || '—'}</td>
-                  <td className="mono">{device.mac_address || '—'}</td>
+                  <td className="mono">{device.ip_address}</td>
+                  <td className="mono">{device.mac_address}</td>
                   <td>{device.hostname || '—'}</td>
                   <td>{device.vendor || 'Unknown'}</td>
                   <td className="mono">
@@ -219,45 +204,6 @@ const Devices = () => {
             )}
           </tbody>
         </table>
-      </div>
-
-      <div className="device-cards">
-        {filteredDevices.map((device) => (
-          <div key={device.id} className="device-card">
-            <div className="device-card-header">
-              {getStatusBadge(device.status)}
-              <span className="device-card-ip mono">{device.ip_address}</span>
-            </div>
-            <div className="device-card-body">
-              <div className="device-card-detail">
-                <span className="label">MAC</span>
-                <span className="value mono">{device.mac_address}</span>
-              </div>
-              <div className="device-card-detail">
-                <span className="label">Hostname</span>
-                <span className="value">{device.hostname || '—'}</span>
-              </div>
-              <div className="device-card-detail">
-                <span className="label">Vendor</span>
-                <span className="value">{device.vendor || 'Unknown'}</span>
-              </div>
-              <div className="device-card-detail">
-                <span className="label">Last Seen</span>
-                <span className="value mono">
-                  {device.last_seen ? new Date(device.last_seen).toLocaleString() : '—'}
-                </span>
-              </div>
-              <div className="device-card-detail">
-                <span className="label">Open Ports</span>
-                <span className="value port-count">{device.open_ports_count || 0}</span>
-              </div>
-            </div>
-            <Link to={`/devices/${device.id}`} className="device-card-action">
-              View Details
-              <FontAwesomeIcon icon="arrow-right" />
-            </Link>
-          </div>
-        ))}
       </div>
     </div>
   )

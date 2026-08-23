@@ -33,7 +33,6 @@ const Ports = () => {
   useEffect(() => {
     let result = [...ports]
 
-    // Search by port number or device IP
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       result = result.filter(p =>
@@ -42,24 +41,19 @@ const Ports = () => {
       )
     }
 
-    // Status filter
     if (statusFilter !== 'ALL') {
       result = result.filter(p => p.status === statusFilter)
     }
 
-    // Protocol filter
     if (protocolFilter !== 'ALL') {
       result = result.filter(p => p.protocol === protocolFilter)
     }
 
-    // Port filter
     if (portFilter) {
       result = result.filter(p => p.port === parseInt(portFilter))
     }
 
-    // Sort by port number
     result.sort((a, b) => a.port - b.port)
-
     setFilteredPorts(result)
   }, [ports, searchTerm, statusFilter, protocolFilter, portFilter])
 
@@ -104,7 +98,6 @@ const Ports = () => {
 
   return (
     <div className="ports-page">
-      {/* Header */}
       <div className="ports-header">
         <div>
           <h1 className="ports-title">Port Visibility</h1>
@@ -118,7 +111,6 @@ const Ports = () => {
         </button>
       </div>
 
-      {/* Stats Summary */}
       <div className="ports-stats-summary">
         <div className="port-stat-card">
           <span className="stat-number">{getStatusCount('OPEN')}</span>
@@ -142,7 +134,6 @@ const Ports = () => {
         </div>
       </div>
 
-      {/* Controls */}
       <div className="ports-controls">
         <div className="search-wrapper">
           <FontAwesomeIcon icon="magnifying-glass" className="search-icon" />
@@ -203,7 +194,6 @@ const Ports = () => {
         </div>
       </div>
 
-      {/* Ports Table */}
       <div className="ports-table-wrapper">
         <table className="ports-table">
           <thead>
