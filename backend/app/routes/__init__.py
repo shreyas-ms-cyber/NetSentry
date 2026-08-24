@@ -9,9 +9,9 @@ from datetime import datetime, timezone
 
 api_bp = Blueprint('api', __name__)
 
-# Import all route modules - USE THE NEW talkers.py file
+# Import all route modules
 from app.routes import ingest
-from app.routes import talkers as traffic
+from app.routes import traffic  # Use the simple traffic.py
 
 @api_bp.route('/health')
 def health():
