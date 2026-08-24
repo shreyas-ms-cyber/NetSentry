@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { getDashboardSummary, getTraffic, getAlerts } from '../services/api'
+import { getDashboardSummary, getTraffic, getAlerts, getTopTalkers } from '../services/api'
 import { getCached, setCached } from '../utils/cache'
 import TrafficChart from '../components/dashboard/TrafficChart'
 import ProtocolChart from '../components/dashboard/ProtocolChart'
@@ -14,15 +14,17 @@ const Dashboard = () => {
   const [summary, setSummary] = useState(() => getCached('dashboard-summary'))
   const [trafficData, setTrafficData] = useState(() => getCached('traffic-data') || [])
   const [alerts, setAlerts] = useState(() => getCached('alerts-data') || [])
+  const [topTalkersData, setTopTalkersData] = useState(() => getCached('top-talkers') || [])
   const [lastUpdated, setLastUpdated] = useState(null)
 
   const fetchAllData = async () => {
     try {
       setLoading(true)
-      const [summaryRes, trafficRes, alertsRes] = await Promise.all([
+      const [summaryRes, trafficRes, alertsRes, topTalkersRes] = await Promise.all([
         getDashboardSummary(),
         getTraffic({ limit: 50 }),
-        getAlerts({ acknowledged: false })
+        getAlerts({ acknowledged: false }),
+        getTopTalkers({ limit: 5 })
       ])
 
       // Extract traffic array
@@ -45,13 +47,15 @@ const Dashboard = () => {
         }
       }
 
-      // Find the best entry (first with non-zero protocol breakdown)
+      // Get top talkers
+      const talkers = topTalkersRes?.data?.top_talkers || []
+
+      // Find the best entry
       const bestTrafficEntry = trafficArray.find(entry => {
         const pb = entry.protocol_breakdown || {}
         return pb.tcp > 0 || pb.udp > 0 || pb.icmp > 0 || pb.other > 0
       }) || trafficArray[0] || null
 
-      // MERGE: Use top_talkers from the best entry
       const mergedSummary = {
         ...summaryRes.data,
         latest_traffic: bestTrafficEntry || summaryRes.data?.latest_traffic
@@ -60,11 +64,13 @@ const Dashboard = () => {
       setSummary(mergedSummary)
       setTrafficData(trafficArray)
       setAlerts(alertsArray)
+      setTopTalkersData(talkers)
       setLastUpdated(new Date())
 
       setCached('dashboard-summary', mergedSummary, 30)
       setCached('traffic-data', trafficArray, 30)
       setCached('alerts-data', alertsArray, 30)
+      setCached('top-talkers', talkers, 30)
 
     } catch (err) {
       console.error('Error fetching data:', err)
@@ -86,8 +92,6 @@ const Dashboard = () => {
     { label: 'Bandwidth', value: summary?.latest_traffic?.bandwidth_mbps?.toFixed(1) ?? '—', icon: 'gauge-high', color: '#00D26A' },
   ]
 
-  // Get top talkers from latest_traffic
-  const topTalkersData = summary?.latest_traffic?.top_talkers || []
   const protocolBreakdown = summary?.latest_traffic?.protocol_breakdown || {}
 
   if (loading && !summary) {
