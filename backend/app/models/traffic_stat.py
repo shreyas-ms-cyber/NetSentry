@@ -13,7 +13,7 @@ class TrafficStat(db.Model):
     packets_per_sec = db.Column(db.Float)
     bandwidth_bytes = db.Column(db.Float)
     protocol_breakdown = db.Column(db.JSON)
-    top_talkers = db.Column(db.JSON, default=[])  # Add top_talkers field with default
+    top_talkers = db.Column(db.JSON, default=[])
     
     __table_args__ = (
         db.Index('idx_timestamp', 'timestamp'),
@@ -28,7 +28,7 @@ class TrafficStat(db.Model):
             'bandwidth_bytes': self.bandwidth_bytes,
             'bandwidth_mbps': round((self.bandwidth_bytes or 0) * 8 / 1000000, 2),
             'protocol_breakdown': self.protocol_breakdown or {'tcp': 0, 'udp': 0, 'icmp': 0, 'other': 0},
-            'top_talkers': self.top_talkers or []  # Always return top_talkers
+            'top_talkers': self.top_talkers or []
         }
     
     def __repr__(self):
