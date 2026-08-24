@@ -12,6 +12,7 @@ api_bp = Blueprint('api', __name__)
 # Import all route modules
 from app.routes import ingest
 from app.routes import traffic
+from app.routes import talkers_endpoint
 
 @api_bp.route('/health')
 def health():
