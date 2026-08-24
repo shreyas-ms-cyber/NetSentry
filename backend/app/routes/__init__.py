@@ -11,7 +11,7 @@ api_bp = Blueprint('api', __name__)
 
 # Import all route modules
 from app.routes import ingest
-from app.routes import traffic  # Use the updated traffic route
+from app.routes import traffic_new as traffic
 
 @api_bp.route('/health')
 def health():
