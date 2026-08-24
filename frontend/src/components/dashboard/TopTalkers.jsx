@@ -23,6 +23,7 @@ const TopTalkers = ({ data, loading }) => {
     return (
       <div style={{ padding: '20px 0', textAlign: 'center' }}>
         <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '13px' }}>No traffic data available</p>
+        <p style={{ color: 'rgba(255,255,255,0.08)', fontSize: '11px' }}>Start the Local Agent to collect traffic</p>
       </div>
     )
   }
@@ -44,7 +45,7 @@ const TopTalkers = ({ data, loading }) => {
               <div 
                 className="talker-bar-fill" 
                 style={{ width: `${Math.min(percentage, 100)}%` }}
-              ></div>
+              />
             </div>
           </div>
         )
