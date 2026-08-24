@@ -21,15 +21,20 @@ class TrafficStat(db.Model):
     
     def to_dict(self):
         """Convert to dictionary with ALL fields including top_talkers"""
-        return {
+        result = {
             'id': self.id,
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,
             'packets_per_sec': self.packets_per_sec,
             'bandwidth_bytes': self.bandwidth_bytes,
             'bandwidth_mbps': round((self.bandwidth_bytes or 0) * 8 / 1000000, 2),
             'protocol_breakdown': self.protocol_breakdown or {'tcp': 0, 'udp': 0, 'icmp': 0, 'other': 0},
-            'top_talkers': self.top_talkers or []
         }
+        # Add top_talkers if it exists
+        if self.top_talkers is not None:
+            result['top_talkers'] = self.top_talkers
+        else:
+            result['top_talkers'] = []
+        return result
     
     def __repr__(self):
         return f'<TrafficStat {self.timestamp} - {self.packets_per_sec} pps>'
