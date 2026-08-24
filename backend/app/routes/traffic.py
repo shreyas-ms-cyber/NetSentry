@@ -12,7 +12,15 @@ def get_traffic():
     limit = request.args.get('limit', 100, type=int)
     stats = TrafficStat.query.order_by(TrafficStat.timestamp.desc()).limit(limit).all()
     
+    result = []
+    for stat in stats:
+        stat_dict = stat.to_dict()
+        # Ensure top_talkers is included
+        if 'top_talkers' not in stat_dict:
+            stat_dict['top_talkers'] = stat.top_talkers or []
+        result.append(stat_dict)
+    
     return jsonify({
-        'traffic': [s.to_dict() for s in stats],
-        'count': len(stats)
+        'traffic': result,
+        'count': len(result)
     })
