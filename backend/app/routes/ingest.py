@@ -13,9 +13,7 @@ logger = logging.getLogger(__name__)
 
 @api_bp.route('/devices/ingest', methods=['POST'])
 def ingest_devices():
-    """Ingest discovered devices from agent"""
     data = request.get_json()
-    
     if not data or 'devices' not in data:
         return jsonify({'error': 'Invalid data format'}), 400
     
@@ -27,13 +25,11 @@ def ingest_devices():
     for device_data in devices_data:
         ip = device_data.get('ip_address')
         mac = device_data.get('mac_address')
-        
         if not ip or not mac:
             errors.append(f"Missing IP or MAC for device: {device_data}")
             continue
         
         existing = Device.query.filter_by(ip_address=ip).first()
-        
         if existing:
             existing.last_seen = datetime.now(timezone.utc)
             existing.status = 'ONLINE'
@@ -73,9 +69,7 @@ def ingest_devices():
 
 @api_bp.route('/ports/ingest', methods=['POST'])
 def ingest_port_scans():
-    """Ingest port scan results from agent"""
     data = request.get_json()
-    
     if not data or 'port_scans' not in data:
         return jsonify({'error': 'Invalid data format'}), 400
     
@@ -86,7 +80,6 @@ def ingest_port_scans():
     for scan_data in port_scans_data:
         try:
             device_ip = scan_data.get('device_ip') or scan_data.get('ip_address')
-            
             if not device_ip:
                 errors.append(f"Missing device_ip for port scan: {scan_data}")
                 continue
@@ -160,7 +153,6 @@ def ingest_port_scans():
 def ingest_traffic():
     """Ingest traffic statistics from agent"""
     data = request.get_json()
-    
     if not data:
         return jsonify({'error': 'Invalid data format'}), 400
     
@@ -170,7 +162,7 @@ def ingest_traffic():
         bandwidth_bytes = data.get('bandwidth_bytes', 0)
         protocol_breakdown = data.get('protocol_breakdown', {})
         total_packets = data.get('total_packets', 0)
-        top_talkers = data.get('top_talkers', [])  # Store top talkers
+        top_talkers = data.get('top_talkers', [])
         
         if timestamp_str:
             try:
@@ -180,13 +172,12 @@ def ingest_traffic():
         else:
             timestamp = datetime.now(timezone.utc)
         
-        # Store top_talkers as JSON in the traffic stat
         traffic_stat = TrafficStat(
             timestamp=timestamp,
             packets_per_sec=packets_per_sec,
             bandwidth_bytes=bandwidth_bytes,
             protocol_breakdown=protocol_breakdown,
-            # We'll store top_talkers as a JSON field - add it to the model if needed
+            top_talkers=top_talkers  # Store top_talkers
         )
         
         db.session.add(traffic_stat)
