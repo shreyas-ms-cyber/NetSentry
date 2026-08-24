@@ -12,15 +12,15 @@ class TrafficStat(db.Model):
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     packets_per_sec = db.Column(db.Float)
     bandwidth_bytes = db.Column(db.Float)
-    protocol_breakdown = db.Column(db.JSON)  # JSON: {tcp: 45, udp: 30, icmp: 15, other: 10}
-    top_talkers = db.Column(db.JSON)  # JSON: [{'ip': '192.168.1.10', 'bytes': 1024, 'packets': 100}]
+    protocol_breakdown = db.Column(db.JSON)
+    top_talkers = db.Column(db.JSON)
     
     __table_args__ = (
         db.Index('idx_timestamp', 'timestamp'),
     )
     
     def to_dict(self):
-        """Convert traffic stat to dictionary for API responses"""
+        """Convert to dictionary with ALL fields including top_talkers"""
         return {
             'id': self.id,
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,

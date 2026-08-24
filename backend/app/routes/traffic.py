@@ -14,10 +14,16 @@ def get_traffic():
     
     result = []
     for stat in stats:
-        stat_dict = stat.to_dict()
-        # Ensure top_talkers is included
-        if 'top_talkers' not in stat_dict:
-            stat_dict['top_talkers'] = stat.top_talkers or []
+        # Build the response manually to ensure all fields are included
+        stat_dict = {
+            'id': stat.id,
+            'timestamp': stat.timestamp.isoformat() if stat.timestamp else None,
+            'packets_per_sec': stat.packets_per_sec,
+            'bandwidth_bytes': stat.bandwidth_bytes,
+            'bandwidth_mbps': round((stat.bandwidth_bytes or 0) * 8 / 1000000, 2),
+            'protocol_breakdown': stat.protocol_breakdown or {'tcp': 0, 'udp': 0, 'icmp': 0, 'other': 0},
+            'top_talkers': stat.top_talkers or []  # Explicitly include top_talkers
+        }
         result.append(stat_dict)
     
     return jsonify({
