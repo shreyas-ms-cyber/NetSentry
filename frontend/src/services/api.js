@@ -2,13 +2,25 @@ import axios from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 
+// Create axios instance with longer timeout for Render free tier (cold start)
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 30000, // Increased from 10000 to 30000ms
 })
+
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === 'ECONNABORTED') {
+      console.warn('Request timeout - backend may be waking up. Retrying...')
+    }
+    return Promise.reject(error)
+  }
+)
 
 // Dashboard APIs
 export const getDashboardSummary = () => api.get('/dashboard/summary')
