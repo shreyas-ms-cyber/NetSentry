@@ -1,5 +1,5 @@
 """
-Traffic Telemetry - Network traffic monitoring
+Traffic Telemetry - Network traffic monitoring with psutil and Scapy
 """
 
 import logging
@@ -14,7 +14,7 @@ try:
     SCAPY_AVAILABLE = True
 except ImportError:
     SCAPY_AVAILABLE = False
-    logging.getLogger(__name__).warning("Scapy not available")
+    logging.getLogger(__name__).warning("Scapy not available - packet capture will be limited")
 
 from netsentry_agent.config import AgentConfig
 
@@ -173,6 +173,7 @@ class TrafficMonitor:
             else:
                 protocol_breakdown = {'tcp': 0, 'udp': 0, 'icmp': 0, 'other': 0}
             
+            # Get top talkers - sort by bytes descending
             top_talkers = sorted(
                 self.talkers.items(),
                 key=lambda x: x[1]['bytes'],
